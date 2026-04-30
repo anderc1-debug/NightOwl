@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.nightowl.MainController"
+            styleClass="root-pane">
+
+    <top>
+        <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="16">
+            <Label text="NightOwl" styleClass="header-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="headerLabel" text="Resource Directory" styleClass="header-section-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Student" styleClass="header-user"/>
+        </HBox>
+    </top>
+
+    <left>
+        <VBox fx:id="sidebar" styleClass="sidebar" prefWidth="220" spacing="4">
+            <padding><Insets top="12" right="8" bottom="12" left="8"/></padding>
+            <Button fx:id="toggleSidebarBtn" text="Menu" styleClass="toggle-btn" onAction="#toggleSidebar" maxWidth="Infinity"/>
+            <Separator styleClass="sidebar-sep"/>
+            <Button fx:id="btnResources" text="Resources" styleClass="nav-btn" onAction="#navResources" maxWidth="Infinity"/>
+            <Button fx:id="btnMap" text="Campus Map" styleClass="nav-btn" onAction="#navMap" maxWidth="Infinity"/>
+            <Button fx:id="btnEmergency" text="Emergency" styleClass="nav-btn" onAction="#navEmergency" maxWidth="Infinity"/>
+            <Button fx:id="btnStudyRooms" text="Study Rooms" styleClass="nav-btn" onAction="#navStudyRooms" maxWidth="Infinity"/>
+            <Button fx:id="btnWellness" text="Wellness" styleClass="nav-btn" onAction="#navWellness" maxWidth="Infinity"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Separator styleClass="sidebar-sep"/>
+            <Label text="v1.0 NightOwl" styleClass="sidebar-footer"/>
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" styleClass="main-scroll">
+            <content>
+                <StackPane fx:id="contentArea" styleClass="content-area">
+
+                    <!-- RESOURCES PANEL -->
+                    <VBox fx:id="panelResources" styleClass="panel" spacing="20" visible="true">
+                        <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+                        <Label text="Resource Directory" styleClass="panel-title"/>
+                        <Label text="Campus services available to you at Farmingdale State College." styleClass="panel-subtitle" wrapText="true"/>
+
+                        <!-- DSC SUMMARY CARD (always visible) -->
+                        <VBox styleClass="resource-card" spacing="12">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+                            <!-- Header row -->
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Disability Services Center" styleClass="card-title"/>
+                                    <Label text="Whitman Hall, Room 186D  |  Testing Center: Room 183" styleClass="card-value"/>
+                                    <Label text="934-420-5174  |  Monday - Friday, 8:30am - 4:00pm" styleClass="card-value-highlight"/>
+                                </VBox>
+                                <Button fx:id="dscToggleBtn" text="▼  View Details" styleClass="schedule-btn" onAction="#toggleDSC"/>
+                            </HBox>
+
+                            <!-- EXPANDABLE DETAILS (hidden by default) -->
+                            <VBox fx:id="dscDetails" spacing="16" visible="false" managed="false">
+
+                                <!-- Contact links -->
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Email:" styleClass="card-label"/>
+                                    <Button text="DSC@farmingdale.edu" styleClass="card-link-btn" onAction="#openDSCEmail"/>
+                                </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Testing:" styleClass="card-label"/>
+                                    <Button text="TESTING@farmingdale.edu" styleClass="card-link-btn" onAction="#openTestingEmail"/>
+                                </HBox>
+                                <Label text="The DSC is dedicated to ensuring equal opportunity for all students with documented permanent or temporary disabilities. Accommodations are NOT retroactive." styleClass="card-note" wrapText="true"/>
+                                <HBox spacing="10">
+                                    <Button text="Documentation Guidelines" styleClass="card-link-btn" onAction="#openDocumentation"/>
+                                    <Button text="Meet the Team" styleClass="card-link-btn" onAction="#openMeetTeam"/>
+                                    <Button text="Report an Issue" styleClass="card-link-btn" onAction="#openReportIssue"/>
+                                </HBox>
+
+                                <Separator styleClass="sidebar-sep"/>
+
+                                <!-- New and Transfer Students -->
+                                <Label text="New and Transfer Students" styleClass="schedule-section-label"/>
+                                <Label text="1. After admission, complete the Getting to Know You form." styleClass="card-value" wrapText="true"/>
+                                <Label text="2. Submit documentation of your disability to DSC@farmingdale.edu." styleClass="card-value" wrapText="true"/>
+                                <Label text="3. Work with a counselor to schedule a meeting to discuss reasonable accommodations." styleClass="card-value" wrapText="true"/>
+                                <Button text="Getting to Know You Form" styleClass="schedule-btn" onAction="#openGettingToKnowYou"/>
+                                <HBox spacing="0">
+                                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                        <Label text="FALL SEMESTER" styleClass="schedule-col-header"/>
+                                        <Label text="June/July:" styleClass="card-label"/>
+                                        <Label text="Complete form, submit documentation, schedule meetings." styleClass="card-note" wrapText="true"/>
+                                        <Label text="Early-Mid August:" styleClass="card-label"/>
+                                        <Label text="College Transition Workshops." styleClass="card-note" wrapText="true"/>
+                                        <Label text="Late August:" styleClass="card-label"/>
+                                        <Label text="Request Semester Accommodations." styleClass="card-note" wrapText="true"/>
+                                    </VBox>
+                                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                        <Label text="SPRING SEMESTER" styleClass="schedule-col-header"/>
+                                        <Label text="December/January:" styleClass="card-label"/>
+                                        <Label text="Complete form, submit documentation, schedule meetings." styleClass="card-note" wrapText="true"/>
+                                        <Label text="Mid-January:" styleClass="card-label"/>
+                                        <Label text="College Transition Workshops." styleClass="card-note" wrapText="true"/>
+                                        <Label text="Late January:" styleClass="card-label"/>
+                                        <Label text="Request Semester Accommodations." styleClass="card-note" wrapText="true"/>
+                                    </VBox>
+                                </HBox>
+                                <Button text="Placement Testing Information" styleClass="card-link-btn" onAction="#openPlacementTesting"/>
+
+                                <Separator styleClass="sidebar-sep"/>
+
+                                <!-- Current Students -->
+                                <Label text="Current Students" styleClass="schedule-section-label"/>
+                                <Label text="Note: All quizzes and exams must be scheduled at least 3 business days in advance." styleClass="card-note" wrapText="true"/>
+                                <Button text="Schedule a Testing Appointment" styleClass="schedule-btn" onAction="#openTestingForm"/>
+                                <Button text="Make Semester Accommodation Letter Request" styleClass="schedule-btn" onAction="#openAccommodationHub"/>
+                                <Label text="Kurzweil 3000 - Free Reading and Study Tool" styleClass="card-label"/>
+                                <Label text="Text-to-speech, highlighting, annotation, and proofreading. Use your FSC login at kurzweil3000.com." styleClass="card-note" wrapText="true"/>
+                                <Button text="Go to Kurzweil 3000" styleClass="schedule-btn" onAction="#openKurzweil"/>
+                                <HBox spacing="10">
+                                    <Button text="Attendance Policy" styleClass="card-link-btn" onAction="#openAttendancePolicy"/>
+                                    <Button text="Web Accessibility" styleClass="card-link-btn" onAction="#openWebAccessibility"/>
+                                    <Button text="Evacuation Procedures" styleClass="card-link-btn" onAction="#openEvacuation"/>
+                                </HBox>
+
+                                <Separator styleClass="sidebar-sep"/>
+
+                                <!-- Visiting Students -->
+                                <Label text="Summer Visiting Students" styleClass="schedule-section-label"/>
+                                <Label text="1. Complete the Visiting Student Getting to Know You form." styleClass="card-value" wrapText="true"/>
+                                <Label text="2. Submit a letter from your home college's disability services office including: your full name, disability and approved accommodations, and counselor contact info." styleClass="card-value" wrapText="true"/>
+                                <Label text="3. Upload letter with the form, or scan and email to DSC@farmingdale.edu." styleClass="card-value" wrapText="true"/>
+                                <Button text="Visiting Student Form" styleClass="schedule-btn" onAction="#openVisitingStudentForm"/>
+                                <Label text="Questions? Call 934-420-5174 or email DSC@farmingdale.edu" styleClass="card-note" wrapText="true"/>
+
+                                <Separator styleClass="sidebar-sep"/>
+
+                                <!-- Services We Offer -->
+                                <Label text="Services We Offer" styleClass="schedule-section-label"/>
+                                <Label text="Pre-enrollment Information and DSC Orientation" styleClass="card-value" wrapText="true"/>
+                                <Label text="Registration Assistance and Transition Workshops" styleClass="card-value" wrapText="true"/>
+                                <Label text="Guidance on Academic Advisement and Disability Issues" styleClass="card-value" wrapText="true"/>
+                                <Label text="Counselors available for Policy and Procedure questions" styleClass="card-value" wrapText="true"/>
+                                <Label text="Distraction Reduced Testing Room" styleClass="card-value" wrapText="true"/>
+                                <Label text="Classroom accommodations including sign language interpreters" styleClass="card-value" wrapText="true"/>
+                                <Label text="Referral to campus resources: tutoring, advisement, Health and Wellness, psychological counseling" styleClass="card-value" wrapText="true"/>
+                                <Label text="Referral to Community Agencies" styleClass="card-value" wrapText="true"/>
+                                <Label text="Available for face-to-face, remote, hybrid, live-stream, online, and distance education programs." styleClass="card-note" wrapText="true"/>
+                                <Button text="Report an Issue on Campus" styleClass="schedule-btn" onAction="#openReportIssue"/>
+
+                            </VBox>
+                        </VBox>
+
+                    </VBox>
+
+                    <!-- MAP PANEL -->
+                    <VBox fx:id="panelMap" styleClass="panel" spacing="20" visible="false">
+                        <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+                        <Label text="Campus Map and Shuttle Tracker" styleClass="panel-title"/>
+                        <HBox spacing="12">
+                            <Button text="Open Live Shuttle Tracker" styleClass="schedule-btn" onAction="#openShuttleTracker"/>
+                            <Button text="Open Campus Map" styleClass="schedule-btn" onAction="#openCampusMap"/>
+                        </HBox>
+                        <VBox styleClass="resource-card" spacing="10">
+                            <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                            <Label text="Shuttle Contact" styleClass="card-title"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Contact:" styleClass="card-label"/>
+                                <Label text="Amanda Cataldo" styleClass="card-value"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Phone:" styleClass="card-label"/>
+                                <Label text="934-420-5258" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Email:" styleClass="card-label"/>
+                                <Button text="cataldak@farmingdale.edu" styleClass="card-link-btn" onAction="#openShuttleEmail"/>
+                            </HBox>
+                            <Label text="Shuttle operates Monday-Friday during Fall and Spring semesters only. Students have priority boarding over staff and faculty at all times." styleClass="card-note" wrapText="true"/>
+                            <Label text="LIRR to Nold Hall: ~5 min  |  Nold/LIRR to Aviation Center: ~15 min" styleClass="card-note" wrapText="true"/>
+                        </VBox>
+                        <VBox styleClass="resource-card" spacing="10">
+                            <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                            <Label text="Shuttle Schedule" styleClass="card-title"/>
+                            <Label text="Arrive at shuttle location 5-10 minutes before departure time." styleClass="card-note" wrapText="true"/>
+                            <HBox styleClass="schedule-header" spacing="0">
+                                <Label text="Departs LIRR" styleClass="schedule-col-header" minWidth="160"/>
+                                <Label text="Departs Nold Hall" styleClass="schedule-col-header" minWidth="160"/>
+                                <Label text="Departs Aviation" styleClass="schedule-col-header" minWidth="160"/>
+                            </HBox>
+                            <Label text="Morning" styleClass="schedule-section-label"/>
+                            <HBox styleClass="schedule-row"><Label text="7:05 AM" styleClass="schedule-cell" minWidth="160"/><Label text="Drop Off*" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="7:20 AM" styleClass="schedule-cell" minWidth="160"/><Label text="Drop Off*" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="7:37 AM" styleClass="schedule-cell" minWidth="160"/><Label text="Drop Off*" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="7:55 AM" styleClass="schedule-cell" minWidth="160"/><Label text="8:04 AM" styleClass="schedule-cell" minWidth="160"/><Label text="8:13 AM" styleClass="schedule-cell" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="8:22 AM" styleClass="schedule-cell" minWidth="160"/><Label text="Drop Off*" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="8:35 AM**" styleClass="schedule-cell" minWidth="160"/><Label text="Drop Off*" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="8:53 AM" styleClass="schedule-cell" minWidth="160"/><Label text="Drop Off*" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="9:08 AM" styleClass="schedule-cell" minWidth="160"/><Label text="9:18 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="9:26 AM" styleClass="schedule-cell" minWidth="160"/><Label text="9:37 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="9:46 AM" styleClass="schedule-cell" minWidth="160"/><Label text="9:55 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="10:00 AM" styleClass="schedule-cell" minWidth="160"/><Label text="10:10 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="10:24 AM" styleClass="schedule-cell" minWidth="160"/><Label text="10:32 AM" styleClass="schedule-cell" minWidth="160"/><Label text="10:41 AM" styleClass="schedule-cell" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="10:50 AM" styleClass="schedule-cell" minWidth="160"/><Label text="11:00 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="11:05 AM" styleClass="schedule-cell" minWidth="160"/><Label text="11:15 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="11:20 AM" styleClass="schedule-cell" minWidth="160"/><Label text="11:30 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="11:35 AM" styleClass="schedule-cell" minWidth="160"/><Label text="11:45 AM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="11:50 AM" styleClass="schedule-cell" minWidth="160"/><Label text="No Boarding" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <Label text="12:00 PM - 1:00 PM   DRIVER BREAK - NO SHUTTLE" styleClass="schedule-break-label"/>
+                            <Label text="Afternoon" styleClass="schedule-section-label"/>
+                            <HBox styleClass="schedule-row"><Label text="1:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="1:10 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="1:20 PM" styleClass="schedule-cell" minWidth="160"/><Label text="1:28 PM" styleClass="schedule-cell" minWidth="160"/><Label text="1:38 PM" styleClass="schedule-cell" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="1:50 PM" styleClass="schedule-cell" minWidth="160"/><Label text="2:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="2:05 PM" styleClass="schedule-cell" minWidth="160"/><Label text="2:15 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="2:24 PM" styleClass="schedule-cell" minWidth="160"/><Label text="2:35 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="2:46 PM" styleClass="schedule-cell" minWidth="160"/><Label text="2:55 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="3:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="3:10 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="3:15 PM" styleClass="schedule-cell" minWidth="160"/><Label text="3:25 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="3:30 PM" styleClass="schedule-cell" minWidth="160"/><Label text="3:40 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="3:45 PM" styleClass="schedule-cell" minWidth="160"/><Label text="3:53 PM" styleClass="schedule-cell" minWidth="160"/><Label text="4:02 PM" styleClass="schedule-cell" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="4:14 PM" styleClass="schedule-cell" minWidth="160"/><Label text="4:25 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="4:30 PM" styleClass="schedule-cell" minWidth="160"/><Label text="4:40 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="4:45 PM" styleClass="schedule-cell" minWidth="160"/><Label text="5:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <Label text="Evening (Monday - Thursday Only)" styleClass="schedule-section-label"/>
+                            <HBox styleClass="schedule-row"><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/><Label text="5:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="5:05 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/><Label text="5:15 PM" styleClass="schedule-cell" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/><Label text="5:25 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="5:30 PM" styleClass="schedule-cell" minWidth="160"/><Label text="5:40 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="5:49 PM" styleClass="schedule-cell" minWidth="160"/><Label text="5:57 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="6:02 PM" styleClass="schedule-cell" minWidth="160"/><Label text="6:10 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="6:15 PM" styleClass="schedule-cell" minWidth="160"/><Label text="6:25 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="6:30 PM" styleClass="schedule-cell" minWidth="160"/><Label text="6:40 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="6:45 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/><Label text="6:55 PM" styleClass="schedule-cell" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/><Label text="7:05 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="7:10 PM" styleClass="schedule-cell" minWidth="160"/><Label text="7:15 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="7:20 PM" styleClass="schedule-cell" minWidth="160"/><Label text="7:30 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="7:35 PM" styleClass="schedule-cell" minWidth="160"/><Label text="7:45 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="7:50 PM" styleClass="schedule-cell" minWidth="160"/><Label text="8:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="8:05 PM" styleClass="schedule-cell" minWidth="160"/><Label text="8:15 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="8:20 PM" styleClass="schedule-cell" minWidth="160"/><Label text="8:35 PM" styleClass="schedule-cell" minWidth="160"/><Label text="8:50 PM" styleClass="schedule-cell" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="9:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="9:10 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="9:15 PM" styleClass="schedule-cell" minWidth="160"/><Label text="9:25 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="9:30 PM" styleClass="schedule-cell" minWidth="160"/><Label text="9:40 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="9:45 PM" styleClass="schedule-cell" minWidth="160"/><Label text="9:50 PM" styleClass="schedule-cell" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <HBox styleClass="schedule-row"><Label text="10:00 PM" styleClass="schedule-cell" minWidth="160"/><Label text="Drop Off Only" styleClass="schedule-cell-dim" minWidth="160"/><Label text="—" styleClass="schedule-cell-dim" minWidth="160"/></HBox>
+                            <Label text="* Drop Off - Riders may board if shuttle is present." styleClass="card-note" wrapText="true"/>
+                            <Label text="** 8:53 AM pickup at Farmingdale LIRR may experience occasional capacity issues due to two trains arriving one minute apart." styleClass="card-note" wrapText="true"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- EMERGENCY PANEL -->
+                    <VBox fx:id="panelEmergency" styleClass="panel" spacing="16" visible="false">
+                        <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+                        <Label text="Emergency Response" styleClass="panel-title"/>
+                        <Label text="Campus emergency contacts, safety procedures, and alerts." styleClass="panel-subtitle" wrapText="true"/>
+                        <Label text="[ Emergency contacts will go here ]" styleClass="placeholder-text"/>
+                    </VBox>
+
+                    <!-- STUDY ROOMS PANEL -->
+                    <VBox fx:id="panelStudyRooms" styleClass="panel" spacing="16" visible="false">
+                        <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+                        <Label text="Study Room Booking" styleClass="panel-title"/>
+                        <Label text="Reserve a study space on campus." styleClass="panel-subtitle" wrapText="true"/>
+
+                    </VBox>
+
+                    <!-- WELLNESS PANEL -->
+                    <VBox fx:id="panelWellness" styleClass="panel" spacing="16" visible="false">
+                        <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+                        <Label text="Personal Wellness Log" styleClass="panel-title"/>
+                        <Label text="Track your mood, sleep, stress, and study sessions." styleClass="panel-subtitle" wrapText="true"/>
+                        <Label text="[ Wellness log and charts will go here ]" styleClass="placeholder-text"/>
+                    </VBox>
+
+                </StackPane>
+            </content>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
