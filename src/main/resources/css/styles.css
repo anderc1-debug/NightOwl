@@ -166,7 +166,7 @@
     -fx-padding: 8 0 0 0;
 }
 
- /*  .schedule-btn {
+.schedule-btn {
     -fx-background-color: #F4A227;
     -fx-text-fill: #0D1B2A;
     -fx-font-size: 13px;
@@ -192,7 +192,18 @@
 .scroll-bar .thumb:hover {
     -fx-background-color: #2A5A7A;
 }
-*/
+
+.sidebar-collapsed .nav-btn {
+    -fx-alignment: CENTER;
+    -fx-padding: 10 0 10 0;
+    -fx-font-size: 18px;
+}
+
+.sidebar-collapsed .toggle-btn {
+    -fx-alignment: CENTER;
+    -fx-padding: 8 0 8 0;
+    -fx-font-size: 18px;
+}
 .schedule-header {
     -fx-background-color: #163450;
     -fx-padding: 8 0 8 0;
