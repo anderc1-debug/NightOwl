@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -35,6 +36,18 @@ public class MainController implements Initializable {
     @FXML private VBox      dscDetails;
     @FXML private Button    dscToggleBtn;
 
+    // ── Wellness Bindings ─────────────────────────────────────────────────────
+
+    @FXML private Slider sliderMood;
+    @FXML private Slider sliderSleep;
+    @FXML private Slider sliderStress;
+    @FXML private Slider sliderStudy;
+    @FXML private Label  labelMood;
+    @FXML private Label  labelSleep;
+    @FXML private Label  labelStress;
+    @FXML private Label  labelStudy;
+    @FXML private Label  labelWellnessSaved;
+
     // ── State ─────────────────────────────────────────────────────────────────
 
     private boolean sidebarExpanded = true;
@@ -42,11 +55,6 @@ public class MainController implements Initializable {
 
     // ── Sealed type: each nav section defined in one place ───────────────────
 
-    /**
-     * Represents a navigation destination.
-     * Uses a Java 21 sealed interface + records so the compiler
-     * enforces exhaustive pattern-matching in switch expressions.
-     */
     sealed interface NavSection
             permits NavSection.Resources, NavSection.Map,
                     NavSection.Emergency, NavSection.StudyRooms,
@@ -61,7 +69,6 @@ public class MainController implements Initializable {
 
     // ── Icon maps for collapsed / expanded sidebar ────────────────────────────
 
-    /** Full labels shown when the sidebar is expanded. */
     private static final Map<String, String> LABELS_EXPANDED = Map.of(
             "toggle",     "Menu",
             "resources",  "Resources",
@@ -71,7 +78,6 @@ public class MainController implements Initializable {
             "wellness",   "Wellness"
     );
 
-    /** Icon-only labels shown when the sidebar is collapsed to 60 px. */
     private static final Map<String, String> LABELS_COLLAPSED = Map.of(
             "toggle",     "☰",
             "resources",  "📋",
@@ -86,6 +92,19 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         navigateTo(new NavSection.Resources());
+        bindSliderLabel(sliderMood,   labelMood);
+        bindSliderLabel(sliderSleep,  labelSleep);
+        bindSliderLabel(sliderStress, labelStress);
+        bindSliderLabel(sliderStudy,  labelStudy);
+    }
+
+    // ── Slider helper ─────────────────────────────────────────────────────────
+
+    private void bindSliderLabel(Slider slider, Label label) {
+        label.setText(String.format("%.0f", slider.getValue()));
+        slider.valueProperty().addListener((obs, oldVal, newVal) ->
+                label.setText(String.format("%.0f", newVal.doubleValue()))
+        );
     }
 
     // ── Sidebar toggle ────────────────────────────────────────────────────────
@@ -130,11 +149,6 @@ public class MainController implements Initializable {
     @FXML private void navStudyRooms() { navigateTo(new NavSection.StudyRooms()); }
     @FXML private void navWellness  () { navigateTo(new NavSection.Wellness());   }
 
-    /**
-     * Central navigation method.
-     * Uses Java 21 pattern-matching switch — exhaustive, so the compiler
-     * will error if a NavSection variant is ever added but not handled here.
-     */
     private void navigateTo(NavSection section) {
         var target = switch (section) {
             case NavSection.Resources  s -> new NavTarget(panelResources,  btnResources,  "Resource Directory");
@@ -154,7 +168,6 @@ public class MainController implements Initializable {
         target.button().getStyleClass().add("nav-btn-active");
     }
 
-    /** Simple record carrying resolved UI references for a nav destination. */
     private record NavTarget(VBox panel, Button button, String title) {}
 
     // ── Helper lists ──────────────────────────────────────────────────────────
@@ -222,6 +235,19 @@ public class MainController implements Initializable {
     @FXML private void openLibraryHours()     { openURL("https://library.farmingdale.edu/hours"); }
 
     // ── Wellness Panel ────────────────────────────────────────────────────────
+
+    @FXML
+    private void saveWellnessEntry() {
+        int mood   = (int) sliderMood.getValue();
+        int sleep  = (int) sliderSleep.getValue();
+        int stress = (int) sliderStress.getValue();
+        int study  = (int) sliderStudy.getValue();
+
+        System.out.printf("[Wellness] mood=%d sleep=%d stress=%d study=%d%n",
+                mood, sleep, stress, study);
+
+        labelWellnessSaved.setText("✓  Entry saved for today.");
+    }
 
     @FXML private void openCounseling()        { openURL("https://www.farmingdale.edu/counseling/index.shtml"); }
     @FXML private void openHealthAndWellness() { openURL("https://www.farmingdale.edu/health-services/index.shtml"); }
