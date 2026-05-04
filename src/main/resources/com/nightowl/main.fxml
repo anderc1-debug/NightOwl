@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -52,11 +53,8 @@
                         <Label text="Resource Directory" styleClass="panel-title"/>
                         <Label text="Campus services available to you at Farmingdale State College." styleClass="panel-subtitle" wrapText="true"/>
 
-                        <!-- DSC SUMMARY CARD (always visible) -->
                         <VBox styleClass="resource-card" spacing="12">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-
-                            <!-- Header row -->
                             <HBox alignment="CENTER_LEFT" spacing="10">
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
                                     <Label text="Disability Services Center" styleClass="card-title"/>
@@ -66,10 +64,7 @@
                                 <Button fx:id="dscToggleBtn" text="▼  View Details" styleClass="schedule-btn" onAction="#toggleDSC"/>
                             </HBox>
 
-                            <!-- EXPANDABLE DETAILS (hidden by default) -->
                             <VBox fx:id="dscDetails" spacing="16" visible="false" managed="false">
-
-                                <!-- Contact links -->
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="Email:" styleClass="card-label"/>
                                     <Button text="DSC@farmingdale.edu" styleClass="card-link-btn" onAction="#openDSCEmail"/>
@@ -87,7 +82,6 @@
 
                                 <Separator styleClass="sidebar-sep"/>
 
-                                <!-- New and Transfer Students -->
                                 <Label text="New and Transfer Students" styleClass="schedule-section-label"/>
                                 <Label text="1. After admission, complete the Getting to Know You form." styleClass="card-value" wrapText="true"/>
                                 <Label text="2. Submit documentation of your disability to DSC@farmingdale.edu." styleClass="card-value" wrapText="true"/>
@@ -117,7 +111,6 @@
 
                                 <Separator styleClass="sidebar-sep"/>
 
-                                <!-- Current Students -->
                                 <Label text="Current Students" styleClass="schedule-section-label"/>
                                 <Label text="Note: All quizzes and exams must be scheduled at least 3 business days in advance." styleClass="card-note" wrapText="true"/>
                                 <Button text="Schedule a Testing Appointment" styleClass="schedule-btn" onAction="#openTestingForm"/>
@@ -133,7 +126,6 @@
 
                                 <Separator styleClass="sidebar-sep"/>
 
-                                <!-- Visiting Students -->
                                 <Label text="Summer Visiting Students" styleClass="schedule-section-label"/>
                                 <Label text="1. Complete the Visiting Student Getting to Know You form." styleClass="card-value" wrapText="true"/>
                                 <Label text="2. Submit a letter from your home college's disability services office including: your full name, disability and approved accommodations, and counselor contact info." styleClass="card-value" wrapText="true"/>
@@ -143,7 +135,6 @@
 
                                 <Separator styleClass="sidebar-sep"/>
 
-                                <!-- Services We Offer -->
                                 <Label text="Services We Offer" styleClass="schedule-section-label"/>
                                 <Label text="Pre-enrollment Information and DSC Orientation" styleClass="card-value" wrapText="true"/>
                                 <Label text="Registration Assistance and Transition Workshops" styleClass="card-value" wrapText="true"/>
@@ -155,10 +146,8 @@
                                 <Label text="Referral to Community Agencies" styleClass="card-value" wrapText="true"/>
                                 <Label text="Available for face-to-face, remote, hybrid, live-stream, online, and distance education programs." styleClass="card-note" wrapText="true"/>
                                 <Button text="Report an Issue on Campus" styleClass="schedule-btn" onAction="#openReportIssue"/>
-
                             </VBox>
                         </VBox>
-
                     </VBox>
 
                     <!-- MAP PANEL -->
@@ -257,27 +246,153 @@
                     </VBox>
 
                     <!-- EMERGENCY PANEL -->
-                    <VBox fx:id="panelEmergency" styleClass="panel" spacing="16" visible="false">
+                    <VBox fx:id="panelEmergency" styleClass="panel" spacing="20" visible="false">
                         <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
                         <Label text="Emergency Response" styleClass="panel-title"/>
-                        <Label text="Campus emergency contacts, safety procedures, and alerts." styleClass="panel-subtitle" wrapText="true"/>
-                        <Label text="[ Emergency contacts will go here ]" styleClass="placeholder-text"/>
+                        <Label text="Campus emergency contacts, safety procedures, and crisis resources." styleClass="panel-subtitle" wrapText="true"/>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Button text="🚨  Call 911" styleClass="schedule-btn" onAction="#call911"/>
+                            <Button text="📞  Call Campus Police" styleClass="schedule-btn" onAction="#callCampusPolice"/>
+                        </HBox>
+
+                        <VBox styleClass="resource-card" spacing="12">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                            <Label text="University Police" styleClass="card-title"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Emergency:" styleClass="card-label"/>
+                                <Label text="911" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Non-Emergency:" styleClass="card-label"/>
+                                <Label text="934-420-5765" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Location:" styleClass="card-label"/>
+                                <Label text="Campus Center, Room 136" styleClass="card-value"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Hours:" styleClass="card-label"/>
+                                <Label text="24 hours a day, 7 days a week" styleClass="card-value"/>
+                            </HBox>
+                            <HBox spacing="10">
+                                <Button text="Emergency Alert Signup" styleClass="card-link-btn" onAction="#openEmergencyAlerts"/>
+                                <Button text="Active Shooter Guide" styleClass="card-link-btn" onAction="#openActiveShooterGuide"/>
+                                <Button text="Evacuation Procedures" styleClass="card-link-btn" onAction="#openEvacuation"/>
+                            </HBox>
+                        </VBox>
+
+                        <VBox styleClass="resource-card" spacing="12">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                            <Label text="Crisis and Mental Health Support" styleClass="card-title"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="988 Lifeline:" styleClass="card-label"/>
+                                <Label text="Call or text 988" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Crisis Text:" styleClass="card-label"/>
+                                <Label text="Text HOME to 741741" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="FSC Counseling:" styleClass="card-label"/>
+                                <Label text="934-420-2006" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <Label text="FSC Counseling and Psychological Services is available Monday–Friday during business hours. For after-hours emergencies, call 988 or go to your nearest emergency room." styleClass="card-note" wrapText="true"/>
+                            <Button text="FSC Counseling and Psychological Services" styleClass="card-link-btn" onAction="#openCrisisSupport"/>
+                        </VBox>
                     </VBox>
 
                     <!-- STUDY ROOMS PANEL -->
-                    <VBox fx:id="panelStudyRooms" styleClass="panel" spacing="16" visible="false">
+                    <VBox fx:id="panelStudyRooms" styleClass="panel" spacing="20" visible="false">
                         <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
                         <Label text="Study Room Booking" styleClass="panel-title"/>
-                        <Label text="Reserve a study space on campus." styleClass="panel-subtitle" wrapText="true"/>
+                        <Label text="Reserve a study space at the Greenley Library." styleClass="panel-subtitle" wrapText="true"/>
 
+                        <Button text="📚  Book a Study Room" styleClass="schedule-btn" onAction="#openStudyRoomBooking"/>
+
+                        <VBox styleClass="resource-card" spacing="12">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                            <Label text="Greenley Library" styleClass="card-title"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Phone:" styleClass="card-label"/>
+                                <Label text="934-420-2524" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Mon – Thu:" styleClass="card-label"/>
+                                <Label text="8:00 AM – 9:00 PM" styleClass="card-value"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Friday:" styleClass="card-label"/>
+                                <Label text="8:00 AM – 5:00 PM" styleClass="card-value"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Saturday:" styleClass="card-label"/>
+                                <Label text="10:00 AM – 5:00 PM" styleClass="card-value"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Sunday:" styleClass="card-label"/>
+                                <Label text="Closed" styleClass="card-value"/>
+                            </HBox>
+                            <Label text="Hours may vary during finals, holidays, and intersession. Check the library website for current hours." styleClass="card-note" wrapText="true"/>
+                            <Button text="Current Library Hours" styleClass="card-link-btn" onAction="#openLibraryHours"/>
+                        </VBox>
                     </VBox>
 
                     <!-- WELLNESS PANEL -->
-                    <VBox fx:id="panelWellness" styleClass="panel" spacing="16" visible="false">
+                    <VBox fx:id="panelWellness" styleClass="panel" spacing="20" visible="false">
                         <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
                         <Label text="Personal Wellness Log" styleClass="panel-title"/>
                         <Label text="Track your mood, sleep, stress, and study sessions." styleClass="panel-subtitle" wrapText="true"/>
-                        <Label text="[ Wellness log and charts will go here ]" styleClass="placeholder-text"/>
+
+                        <VBox styleClass="resource-card" spacing="14">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                            <Label text="Log Today's Entry" styleClass="card-title"/>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Mood:" styleClass="card-label" minWidth="80"/>
+                                <Slider fx:id="sliderMood" min="1" max="10" value="5" showTickLabels="true" showTickMarks="true" majorTickUnit="1" snapToTicks="true" HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelMood" text="5" styleClass="card-value-highlight" minWidth="20"/>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Sleep (hrs):" styleClass="card-label" minWidth="80"/>
+                                <Slider fx:id="sliderSleep" min="0" max="12" value="7" showTickLabels="true" showTickMarks="true" majorTickUnit="2" snapToTicks="true" HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelSleep" text="7" styleClass="card-value-highlight" minWidth="20"/>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Stress:" styleClass="card-label" minWidth="80"/>
+                                <Slider fx:id="sliderStress" min="1" max="10" value="5" showTickLabels="true" showTickMarks="true" majorTickUnit="1" snapToTicks="true" HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelStress" text="5" styleClass="card-value-highlight" minWidth="20"/>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Study (hrs):" styleClass="card-label" minWidth="80"/>
+                                <Slider fx:id="sliderStudy" min="0" max="12" value="2" showTickLabels="true" showTickMarks="true" majorTickUnit="2" snapToTicks="true" HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="labelStudy" text="2" styleClass="card-value-highlight" minWidth="20"/>
+                            </HBox>
+
+                            <Button text="Save Entry" styleClass="schedule-btn" onAction="#saveWellnessEntry"/>
+                            <Label fx:id="labelWellnessSaved" text="" styleClass="card-note"/>
+                        </VBox>
+
+                        <VBox styleClass="resource-card" spacing="12">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                            <Label text="Campus Support Resources" styleClass="card-title"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Counseling:" styleClass="card-label"/>
+                                <Label text="934-420-2006" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Health:" styleClass="card-label"/>
+                                <Label text="934-420-2556" styleClass="card-value-highlight"/>
+                            </HBox>
+                            <HBox spacing="10">
+                                <Button text="Counseling and Psychological Services" styleClass="card-link-btn" onAction="#openCounseling"/>
+                                <Button text="Health and Wellness" styleClass="card-link-btn" onAction="#openHealthAndWellness"/>
+                                <Button text="TimelyCare" styleClass="card-link-btn" onAction="#openTimelyCare"/>
+                            </HBox>
+                        </VBox>
                     </VBox>
 
                 </StackPane>
