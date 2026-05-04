@@ -243,9 +243,14 @@ public class MainController implements Initializable {
         int stress = (int) sliderStress.getValue();
         int study  = (int) sliderStudy.getValue();
 
-        System.out.printf("[Wellness] mood=%d sleep=%d stress=%d study=%d%n",
-                mood, sleep, stress, study);
+        var db = DatabaseManager.getInstance();
 
+        if (db.hasEntryForToday()) {
+            labelWellnessSaved.setText("⚠  You already logged an entry today.");
+            return;
+        }
+
+        db.saveWellnessEntry(mood, sleep, stress, study);
         labelWellnessSaved.setText("✓  Entry saved for today.");
     }
 
