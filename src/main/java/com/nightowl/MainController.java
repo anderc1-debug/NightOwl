@@ -1031,21 +1031,21 @@ public class MainController implements Initializable {
         }
 
         chart.getData().addAll(moodSeries, sleepSeries, stressSeries, studySeries);
+        wellnessChartContainer.getChildren().add(chart);
 
         String[] colors = {"#C084FC", "#60A5FA", "#F87171", "#34D399"};
-        chart.applyCss();
-        for (int i = 0; i < chart.getData().size(); i++) {
-            var series = chart.getData().get(i);
-            String color = colors[i];
-            if (series.getNode() != null)
-                series.getNode().setStyle("-fx-stroke: " + color + "; -fx-stroke-width: 2px;");
-            for (var d : series.getData()) {
-                if (d.getNode() != null)
-                    d.getNode().setStyle("-fx-background-color: " + color + ", white; -fx-background-radius: 4px;");
+        javafx.application.Platform.runLater(() -> {
+            for (int i = 0; i < chart.getData().size(); i++) {
+                var series = chart.getData().get(i);
+                String color = colors[i];
+                if (series.getNode() != null)
+                    series.getNode().setStyle("-fx-stroke: " + color + "; -fx-stroke-width: 2px;");
+                for (var d : series.getData()) {
+                    if (d.getNode() != null)
+                        d.getNode().setStyle("-fx-background-color: " + color + ", white; -fx-background-radius: 4px;");
+                }
             }
-        }
-
-        wellnessChartContainer.getChildren().add(chart);
+        });
 
         int n = sorted.size();
         Label summaryTitle = makeCardTitle("Averages (" + n + " entries)");
