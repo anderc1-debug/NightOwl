@@ -433,6 +433,11 @@ public class MainApp extends Application {
             """);
     }
 
+    public void restart(javafx.stage.Stage stage) {
+        this.primaryStage = stage;
+        showLoginScreen();
+    }
+
     @Override
     public void stop() {
         DatabaseManager.getInstance().shutdown();
