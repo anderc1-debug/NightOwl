@@ -4,7 +4,7 @@ module com.nightowl {
     requires javafx.web;
     requires java.desktop;
     requires java.sql;
-    requires derby;
+    requires org.apache.derby.engine;
 
     opens com.nightowl to javafx.fxml;
     exports com.nightowl;
