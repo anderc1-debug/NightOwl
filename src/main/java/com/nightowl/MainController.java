@@ -37,7 +37,14 @@ public class MainController implements Initializable {
     @FXML private VBox      panelEmergency;
     @FXML private VBox      panelStudyRooms;
     @FXML private VBox      panelWellness;
+    @FXML private VBox      panelTips;
+    @FXML private Button    btnTips;
+    @FXML private VBox      panelMyResources;
+    @FXML private Button    btnMyResources;
+    @FXML private VBox      panelAdmin;
+    @FXML private Button    btnAdmin;
     @FXML private Label     headerLabel;
+    @FXML private Label     headerUserLabel;
 
     @FXML private Slider sliderMood;
     @FXML private Slider sliderSleep;
@@ -84,21 +91,30 @@ public class MainController implements Initializable {
     sealed interface NavSection
             permits NavSection.Resources, NavSection.Map,
                     NavSection.Emergency, NavSection.StudyRooms,
-                    NavSection.Wellness {
+                    NavSection.Wellness, NavSection.Tips, NavSection.MyResources, NavSection.Admin {
         record Resources  () implements NavSection {}
         record Map        () implements NavSection {}
         record Emergency  () implements NavSection {}
         record StudyRooms () implements NavSection {}
         record Wellness   () implements NavSection {}
+        record Tips       () implements NavSection {}
+        record MyResources() implements NavSection {}
+        record Admin     () implements NavSection {}
     }
 
     private static final Map<String, String> LABELS_EXPANDED = Map.of(
             "toggle", "Menu", "resources", "Resources", "map", "Campus Map",
-            "emergency", "Emergency", "studyrooms", "Study Rooms", "wellness", "Wellness"
+            "emergency", "Emergency", "studyrooms", "Study Rooms", "wellness", "Wellness",
+            "tips", "Submit a Tip",
+            "myresources", "My Resources",
+            "admin", "Admin Console"
     );
     private static final Map<String, String> LABELS_COLLAPSED = Map.of(
             "toggle", "☰", "resources", "📋", "map", "🗺",
-            "emergency", "🚨", "studyrooms", "📚", "wellness", "💚"
+            "emergency", "🚨", "studyrooms", "📚", "wellness", "💚",
+            "tips", "💡",
+            "myresources", "⭐",
+            "admin", "🔧"
     );
 
     // ── User setup ────────────────────────────────────────────────────────────
@@ -108,11 +124,18 @@ public class MainController implements Initializable {
         if (user != null) {
             campus = CampusResources.get(user.getSchool());
             headerLabel.setText("Welcome, " + user.getUsername());
+            headerUserLabel.setText(user.getUsername() + (user.isAdmin() ? "  🔧" : ""));
             buildAllResources();
             buildResourcesPanel();
             buildMapPanel();
             buildEmergencyPanel();
             buildStudyRoomsPanel();
+            buildTipsPanel();
+            buildMyResourcesPanel();
+            // Show admin button only for admins
+            btnAdmin.setVisible(user.isAdmin());
+            btnAdmin.setManaged(user.isAdmin());
+            if (user.isAdmin()) buildAdminPanel();
         }
     }
 
@@ -298,6 +321,10 @@ public class MainController implements Initializable {
     }
 
     private VBox buildResourceCard(ResourceEntry r) {
+        return buildResourceCard(r, false);
+    }
+
+    private VBox buildResourceCard(ResourceEntry r, boolean inMyResources) {
         return makeCard(card -> {
             boolean[] expanded = {false};
 
@@ -316,12 +343,36 @@ public class MainController implements Initializable {
             Button toggleBtn = makeScheduleBtn("▼  Details");
             toggleBtn.setStyle(toggleBtn.getStyle() + "-fx-font-size: 12px; -fx-padding: 6 12 6 12;");
 
+            // Bookmark button
+            boolean isBookmarked = currentUser != null &&
+                DatabaseManager.getInstance().isBookmarked(currentUser.getId(), r.title());
+            Button bookmarkBtn = new Button(isBookmarked ? "⭐" : "☆");
+            bookmarkBtn.setStyle("""
+                -fx-background-color: transparent;
+                -fx-text-fill: #C084FC;
+                -fx-font-size: 18px;
+                -fx-cursor: hand;
+                -fx-padding: 2 6 2 6;
+                """);
+            bookmarkBtn.setOnAction(e -> {
+                if (currentUser == null) return;
+                boolean currently = DatabaseManager.getInstance().isBookmarked(currentUser.getId(), r.title());
+                if (currently) {
+                    DatabaseManager.getInstance().removeBookmark(currentUser.getId(), r.title());
+                    bookmarkBtn.setText("☆");
+                    if (inMyResources) buildMyResourcesPanel();
+                } else {
+                    DatabaseManager.getInstance().addBookmark(currentUser.getId(), r.title());
+                    bookmarkBtn.setText("⭐");
+                }
+            });
+
             VBox leftCol = new VBox(4, badge, titleLabel);
             if (!r.location().isEmpty()) leftCol.getChildren().add(makeCardValue(r.location()));
             if (!r.phone().isEmpty())    leftCol.getChildren().add(makeCardValueHighlight(r.phone()));
             HBox.setHgrow(leftCol, Priority.ALWAYS);
 
-            HBox headerRow = new HBox(10, leftCol, toggleBtn);
+            HBox headerRow = new HBox(10, leftCol, bookmarkBtn, toggleBtn);
             headerRow.setAlignment(Pos.CENTER_LEFT);
 
             // Expandable details
@@ -518,6 +569,9 @@ public class MainController implements Initializable {
         btnEmergency .setText(labels.get("emergency"));
         btnStudyRooms.setText(labels.get("studyrooms"));
         btnWellness  .setText(labels.get("wellness"));
+        btnTips      .setText(labels.get("tips"));
+        btnMyResources.setText(labels.get("myresources"));
+        if (currentUser != null && currentUser.isAdmin()) btnAdmin.setText(labels.get("admin"));
     }
 
     // ── Navigation ────────────────────────────────────────────────────────────
@@ -527,6 +581,9 @@ public class MainController implements Initializable {
     @FXML private void navEmergency () { navigateTo(new NavSection.Emergency());  }
     @FXML private void navStudyRooms() { navigateTo(new NavSection.StudyRooms()); }
     @FXML private void navWellness  () { navigateTo(new NavSection.Wellness());   }
+    @FXML private void navTips       () { navigateTo(new NavSection.Tips());        }
+    @FXML private void navMyResources () { buildMyResourcesPanel(); navigateTo(new NavSection.MyResources()); }
+    @FXML private void navAdmin       () { buildAdminPanel(); navigateTo(new NavSection.Admin()); }
 
     private void navigateTo(NavSection section) {
         var target = switch (section) {
@@ -535,6 +592,9 @@ public class MainController implements Initializable {
             case NavSection.Emergency  s -> new NavTarget(panelEmergency,  btnEmergency,  "Emergency Response");
             case NavSection.StudyRooms s -> new NavTarget(panelStudyRooms, btnStudyRooms, "Study Room Booking");
             case NavSection.Wellness   s -> new NavTarget(panelWellness,   btnWellness,   "Personal Wellness Log");
+            case NavSection.Tips       s -> new NavTarget(panelTips,       btnTips,       "Submit a Resource Tip");
+            case NavSection.MyResources s -> new NavTarget(panelMyResources, btnMyResources, "My Resources");
+            case NavSection.Admin       s -> new NavTarget(panelAdmin,       btnAdmin,       "Admin Console");
         };
         allPanels().forEach(p -> { p.setVisible(false); p.setManaged(false); });
         target.panel().setVisible(true);
@@ -546,10 +606,10 @@ public class MainController implements Initializable {
 
     private record NavTarget(VBox panel, Button button, String title) {}
     private List<VBox> allPanels() {
-        return List.of(panelResources, panelMap, panelEmergency, panelStudyRooms, panelWellness);
+        return List.of(panelResources, panelMap, panelEmergency, panelStudyRooms, panelWellness, panelTips, panelMyResources, panelAdmin);
     }
     private List<Button> allNavButtons() {
-        return List.of(btnResources, btnMap, btnEmergency, btnStudyRooms, btnWellness);
+        return List.of(btnResources, btnMap, btnEmergency, btnStudyRooms, btnWellness, btnTips, btnMyResources, btnAdmin);
     }
 
     // ── URL helpers ───────────────────────────────────────────────────────────
@@ -586,6 +646,328 @@ public class MainController implements Initializable {
         }
         db.saveWellnessEntry(mood, sleep, stress, study);
         labelWellnessSaved.setText("✓  Entry saved for today.");
+    }
+
+
+    // ── Tips Panel ────────────────────────────────────────────────────────────
+
+    private void buildTipsPanel() {
+        panelTips.getChildren().clear();
+        panelTips.setPadding(new Insets(30));
+        panelTips.setSpacing(20);
+
+        panelTips.getChildren().addAll(
+            makeTitle("Submit a Resource Tip"),
+            makeSubtitle("Help keep NightOwl accurate. Flag outdated info or suggest a missing resource for " + campus().name() + ".")
+        );
+
+        // Tip type selector
+        Label typeLabel = new Label("What type of tip is this?");
+        typeLabel.setStyle("-fx-text-fill: #A78BCA; -fx-font-size: 13px; -fx-font-weight: bold;");
+
+        javafx.scene.control.ToggleGroup typeGroup = new javafx.scene.control.ToggleGroup();
+        HBox typeRow = new HBox(12);
+
+        String[] types = {"Outdated Info", "Missing Resource", "Wrong Link", "Other"};
+        String[] typeVals = {"OUTDATED", "MISSING", "WRONG_LINK", "OTHER"};
+        javafx.scene.control.RadioButton[] radios = new javafx.scene.control.RadioButton[types.length];
+
+        for (int i = 0; i < types.length; i++) {
+            radios[i] = new javafx.scene.control.RadioButton(types[i]);
+            radios[i].setToggleGroup(typeGroup);
+            radios[i].setStyle("-fx-text-fill: #E0C3FC; -fx-font-size: 13px;");
+            final String val = typeVals[i];
+            typeRow.getChildren().add(radios[i]);
+        }
+        radios[0].setSelected(true);
+
+        // Resource name field
+        Label resourceLabel = new Label("Resource name (optional)");
+        resourceLabel.setStyle("-fx-text-fill: #A78BCA; -fx-font-size: 13px; -fx-font-weight: bold;");
+        javafx.scene.control.TextField resourceField = new javafx.scene.control.TextField();
+        resourceField.setPromptText("e.g. Disability Services Center");
+        styleInputField(resourceField);
+
+        // Description
+        Label descLabel = new Label("Describe the issue or suggestion *");
+        descLabel.setStyle("-fx-text-fill: #A78BCA; -fx-font-size: 13px; -fx-font-weight: bold;");
+        javafx.scene.control.TextArea descField = new javafx.scene.control.TextArea();
+        descField.setPromptText("Be as specific as possible — what's wrong or what's missing?");
+        descField.setPrefRowCount(4);
+        descField.setWrapText(true);
+        descField.setStyle("""
+            -fx-background-color: #120720;
+            -fx-text-fill: #E0C3FC;
+            -fx-prompt-text-fill: #5B3A8A;
+            -fx-border-color: #3D1F6B;
+            -fx-border-width: 1;
+            -fx-border-radius: 8;
+            -fx-background-radius: 8;
+            -fx-font-size: 13px;
+            """);
+
+        // Contact email
+        Label emailLabel = new Label("Your email (optional, for follow-up)");
+        emailLabel.setStyle("-fx-text-fill: #A78BCA; -fx-font-size: 13px; -fx-font-weight: bold;");
+        javafx.scene.control.TextField emailField = new javafx.scene.control.TextField();
+        emailField.setPromptText("your@email.com");
+        styleInputField(emailField);
+
+        // Status label
+        Label statusLabel = new Label("");
+        statusLabel.setStyle("-fx-font-size: 13px;");
+        statusLabel.setWrapText(true);
+
+        // Submit button
+        Button submitBtn = makeScheduleBtn("📩  Submit Tip");
+        submitBtn.setOnAction(e -> {
+            String desc = descField.getText().trim();
+            if (desc.isEmpty()) {
+                statusLabel.setText("⚠  Please describe the issue before submitting.");
+                statusLabel.setStyle("-fx-text-fill: #E05555; -fx-font-size: 13px;");
+                return;
+            }
+
+            // Get selected type
+            String selectedType = "OTHER";
+            for (int i = 0; i < radios.length; i++) {
+                if (radios[i].isSelected()) { selectedType = typeVals[i]; break; }
+            }
+
+            String username = currentUser != null ? currentUser.getUsername() : "anonymous";
+            boolean ok = DatabaseManager.getInstance().submitTip(
+                username, selectedType,
+                resourceField.getText().trim(),
+                desc,
+                emailField.getText().trim()
+            );
+
+            if (ok) {
+                statusLabel.setText("✓  Tip submitted! Thank you for helping keep NightOwl accurate.");
+                statusLabel.setStyle("-fx-text-fill: #34D399; -fx-font-size: 13px;");
+                descField.clear();
+                resourceField.clear();
+                emailField.clear();
+                radios[0].setSelected(true);
+            } else {
+                statusLabel.setText("✗  Something went wrong. Please try again.");
+                statusLabel.setStyle("-fx-text-fill: #E05555; -fx-font-size: 13px;");
+            }
+        });
+
+        VBox form = new VBox(14,
+            typeLabel, typeRow,
+            resourceLabel, resourceField,
+            descLabel, descField,
+            emailLabel, emailField,
+            submitBtn, statusLabel
+        );
+        form.getStyleClass().add("resource-card");
+        form.setPadding(new Insets(24));
+
+        // Past submissions info card
+        VBox infoCard = makeCard(card -> card.getChildren().addAll(
+            makeCardTitle("How tips work"),
+            makeCardNote("Tips are reviewed by NightOwl admins and used to keep resource listings accurate."),
+            makeCardNote("You don't need to provide your email, but it helps us follow up if we need more details."),
+            makeCardNote("Thank you for contributing to NightOwl! 🦉")
+        ));
+
+        panelTips.getChildren().addAll(form, infoCard);
+    }
+
+    private void styleInputField(javafx.scene.control.TextField field) {
+        field.setStyle("""
+            -fx-background-color: #120720;
+            -fx-text-fill: #E0C3FC;
+            -fx-prompt-text-fill: #5B3A8A;
+            -fx-border-color: #3D1F6B;
+            -fx-border-width: 1;
+            -fx-border-radius: 8;
+            -fx-background-radius: 8;
+            -fx-padding: 10 14 10 14;
+            -fx-font-size: 13px;
+            """);
+    }
+
+
+    // ── My Resources Panel ────────────────────────────────────────────────────
+
+    private void buildMyResourcesPanel() {
+        panelMyResources.getChildren().clear();
+        panelMyResources.setPadding(new Insets(30));
+        panelMyResources.setSpacing(20);
+
+        panelMyResources.getChildren().addAll(
+            makeTitle("My Resources"),
+            makeSubtitle("Your bookmarked resources for quick access.")
+        );
+
+        if (currentUser == null) {
+            panelMyResources.getChildren().add(makeCardNote("Sign in to bookmark resources."));
+            return;
+        }
+
+        var bookmarkedTitles = DatabaseManager.getInstance().getBookmarks(currentUser.getId());
+
+        if (bookmarkedTitles.isEmpty()) {
+            Label empty = new Label("No bookmarks yet. Hit ☆ on any resource to save it here.");
+            empty.setStyle("-fx-text-fill: #5B3A8A; -fx-font-size: 13px; -fx-font-style: italic; -fx-padding: 10 0 0 0;");
+            panelMyResources.getChildren().add(empty);
+            return;
+        }
+
+        for (String title : bookmarkedTitles) {
+            allResources.stream()
+                .filter(r -> r.title().equals(title))
+                .findFirst()
+                .ifPresent(r -> panelMyResources.getChildren().add(buildResourceCard(r, true)));
+        }
+    }
+
+
+    // ── Logout ────────────────────────────────────────────────────────────────
+
+    @FXML
+    private void logout() {
+        currentUser = null;
+        campus = null;
+        var stage = (javafx.stage.Stage) sidebar.getScene().getWindow();
+        new MainApp().restart(stage);
+    }
+
+    // ── Admin Console ─────────────────────────────────────────────────────────
+
+    private void buildAdminPanel() {
+        panelAdmin.getChildren().clear();
+        panelAdmin.setPadding(new Insets(30));
+        panelAdmin.setSpacing(20);
+
+        panelAdmin.getChildren().addAll(
+            makeTitle("Admin Console"),
+            makeSubtitle("Manage users and review submitted resource tips.")
+        );
+
+        // ── Users section ──────────────────────────────────────────────────
+        Label usersTitle = makeCardTitle("👤  User Management");
+        VBox usersCard = new VBox(0);
+        usersCard.getStyleClass().add("resource-card");
+        usersCard.setPadding(new Insets(20));
+        usersCard.setSpacing(0);
+        usersCard.getChildren().add(usersTitle);
+
+        var users = DatabaseManager.getInstance().getAllUsers();
+
+        if (users.isEmpty()) {
+            usersCard.getChildren().add(makeCardNote("No users found."));
+        } else {
+            // Header row
+            HBox header = new HBox();
+            header.setStyle("-fx-background-color: #2D1050; -fx-padding: 8 0 8 0;");
+            header.setSpacing(0);
+            for (String col : new String[]{"Username", "School", "Role"}) {
+                Label lbl = new Label(col);
+                lbl.setStyle("-fx-text-fill: #E0C3FC; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 0 0 0 10;");
+                lbl.setPrefWidth(col.equals("Username") ? 180 : col.equals("School") ? 240 : 120);
+                header.getChildren().add(lbl);
+            }
+            usersCard.getChildren().add(header);
+
+            for (var u : users) {
+                HBox row = new HBox();
+                row.setStyle("-fx-border-color: transparent transparent #3D1F6B transparent; -fx-border-width: 1; -fx-padding: 8 0 8 0;");
+                row.setAlignment(Pos.CENTER_LEFT);
+
+                Label nameLbl = new Label(u.getUsername());
+                nameLbl.setStyle("-fx-text-fill: #E0C3FC; -fx-font-size: 12px; -fx-padding: 0 0 0 10;");
+                nameLbl.setPrefWidth(180);
+
+                Label schoolLbl = new Label(u.getSchool() == null || u.getSchool().isEmpty() ? "—" : u.getSchool());
+                schoolLbl.setStyle("-fx-text-fill: #A78BCA; -fx-font-size: 12px; -fx-padding: 0 0 0 10;");
+                schoolLbl.setPrefWidth(240);
+
+                Button roleBtn = new Button(u.isAdmin() ? "Admin" : "User");
+                roleBtn.setStyle(u.isAdmin()
+                    ? "-fx-background-color: #7C3AED; -fx-text-fill: white; -fx-font-size: 11px; -fx-background-radius: 4; -fx-padding: 3 10 3 10; -fx-cursor: hand;"
+                    : "-fx-background-color: #2D1050; -fx-text-fill: #A78BCA; -fx-font-size: 11px; -fx-background-radius: 4; -fx-padding: 3 10 3 10; -fx-cursor: hand;"
+                );
+                // Don't let admin demote themselves
+                if (u.getId() == currentUser.getId()) {
+                    roleBtn.setDisable(true);
+                } else {
+                    roleBtn.setOnAction(e -> {
+                        boolean nowAdmin = !u.isAdmin();
+                        DatabaseManager.getInstance().setAdmin(u.getId(), nowAdmin);
+                        buildAdminPanel();
+                    });
+                }
+
+                row.getChildren().addAll(nameLbl, schoolLbl, roleBtn);
+                usersCard.getChildren().add(row);
+            }
+        }
+
+        // ── Tips section ───────────────────────────────────────────────────
+        Label tipsTitle = makeCardTitle("💡  Submitted Tips");
+        VBox tipsCard = new VBox(0);
+        tipsCard.getStyleClass().add("resource-card");
+        tipsCard.setPadding(new Insets(20));
+        tipsCard.setSpacing(0);
+        tipsCard.getChildren().add(tipsTitle);
+
+        var tips = DatabaseManager.getInstance().getAllTips();
+
+        if (tips.isEmpty()) {
+            tipsCard.getChildren().add(makeCardNote("No tips submitted yet."));
+        } else {
+            for (var tip : tips) {
+                // tip: [ID, SUBMITTED_AT, USERNAME, TIP_TYPE, RESOURCE_NAME, DESCRIPTION, CONTACT_EMAIL, STATUS]
+                String id           = tip[0];
+                String submittedAt  = tip[1] != null ? tip[1].substring(0, 16) : "—";
+                String username     = tip[2] != null ? tip[2] : "anonymous";
+                String type         = tip[3] != null ? tip[3].replace("_", " ") : "";
+                String resourceName = tip[4] != null && !tip[4].isEmpty() ? tip[4] : "—";
+                String desc         = tip[5] != null ? tip[5] : "";
+                String email        = tip[6] != null && !tip[6].isEmpty() ? tip[6] : "—";
+                String status       = tip[7] != null ? tip[7] : "PENDING";
+
+                VBox tipBox = new VBox(6);
+                tipBox.setStyle("-fx-border-color: transparent transparent #3D1F6B transparent; -fx-border-width: 1; -fx-padding: 12 0 12 0;");
+
+                Label tipHeader = new Label("#" + id + "  •  " + type + "  •  " + username + "  •  " + submittedAt);
+                tipHeader.setStyle("-fx-text-fill: #C084FC; -fx-font-size: 12px; -fx-font-weight: bold;");
+
+                Label tipResource = new Label("Resource: " + resourceName + "  |  Contact: " + email);
+                tipResource.setStyle("-fx-text-fill: #A78BCA; -fx-font-size: 11px;");
+
+                Label tipDesc = new Label(desc);
+                tipDesc.setStyle("-fx-text-fill: #E0C3FC; -fx-font-size: 12px;");
+                tipDesc.setWrapText(true);
+                tipDesc.setMaxWidth(560);
+
+                // Status buttons
+                HBox statusRow = new HBox(8);
+                String[] statuses = {"PENDING", "REVIEWED", "RESOLVED", "DISMISSED"};
+                for (String s : statuses) {
+                    Button sb = new Button(s);
+                    boolean active = s.equals(status);
+                    sb.setStyle(active
+                        ? "-fx-background-color: #7C3AED; -fx-text-fill: white; -fx-font-size: 10px; -fx-background-radius: 4; -fx-padding: 3 8 3 8; -fx-cursor: hand;"
+                        : "-fx-background-color: #1A0A2E; -fx-text-fill: #5B3A8A; -fx-font-size: 10px; -fx-border-color: #3D1F6B; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 3 8 3 8; -fx-cursor: hand;"
+                    );
+                    sb.setOnAction(e -> {
+                        DatabaseManager.getInstance().updateTipStatus(Integer.parseInt(id), s);
+                        buildAdminPanel();
+                    });
+                    statusRow.getChildren().add(sb);
+                }
+
+                tipBox.getChildren().addAll(tipHeader, tipResource, tipDesc, statusRow);
+                tipsCard.getChildren().add(tipBox);
+            }
+        }
+
+        panelAdmin.getChildren().addAll(usersCard, tipsCard);
     }
 
     @FXML private void openCounseling()        { openURL(campus().counseling()); }
