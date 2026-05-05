@@ -7,20 +7,30 @@ public class UserProfile {
     private String major;
     private String classYear;
     private String resourcePrefs;
+    private boolean admin;
 
-    public UserProfile(int id, String username, String school, String major, String classYear, String resourcePrefs) {
+    public UserProfile(int id, String username, String school, String major,
+                       String classYear, String resourcePrefs, boolean admin) {
         this.id = id;
         this.username = username;
         this.school = school;
         this.major = major;
         this.classYear = classYear;
         this.resourcePrefs = resourcePrefs;
+        this.admin = admin;
     }
 
-    public int getId() { return id; }
-    public String getUsername() { return username; }
-    public String getSchool() { return school; }
-    public String getMajor() { return major; }
-    public String getClassYear() { return classYear; }
+    // Legacy constructor for non-admin users
+    public UserProfile(int id, String username, String school, String major,
+                       String classYear, String resourcePrefs) {
+        this(id, username, school, major, classYear, resourcePrefs, false);
+    }
+
+    public int getId()             { return id; }
+    public String getUsername()    { return username; }
+    public String getSchool()      { return school; }
+    public String getMajor()       { return major; }
+    public String getClassYear()   { return classYear; }
     public String getResourcePrefs() { return resourcePrefs; }
+    public boolean isAdmin()       { return admin; }
 }
