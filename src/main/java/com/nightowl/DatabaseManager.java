@@ -4,6 +4,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.security.MessageDigest;
 
 public class DatabaseManager {
 
@@ -14,6 +15,16 @@ public class DatabaseManager {
     public static DatabaseManager getInstance() {
         if (instance == null) instance = new DatabaseManager();
         return instance;
+    }
+
+    private String hash(String pw) {
+        try {
+            var md = MessageDigest.getInstance("SHA-256");
+            var bytes = md.digest(pw.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            var sb = new StringBuilder();
+            for (byte b : bytes) sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (Exception e) { return pw; }
     }
 
     private Connection getConnection() throws SQLException {
@@ -93,7 +104,7 @@ public class DatabaseManager {
         String sql = "SELECT * FROM USER_PROFILES WHERE USERNAME = ? AND PASSWORD = ?";
         try (var conn = getConnection(); var stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
-            stmt.setString(2, password);
+            stmt.setString(2, hash(password));
             var rs = stmt.executeQuery();
             if (rs.next()) return mapUser(rs);
         } catch (SQLException e) { System.err.println("[DB] Login: " + e.getMessage()); }
@@ -113,7 +124,7 @@ public class DatabaseManager {
         String sql = "INSERT INTO USER_PROFILES (USERNAME, PASSWORD, SCHOOL, MAJOR, CLASS_YEAR, RESOURCE_PREFS, IS_ADMIN) VALUES (?, ?, '', '', '', '', 0)";
         try (var conn = getConnection(); var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, username);
-            stmt.setString(2, password);
+            stmt.setString(2, hash(password));
             stmt.executeUpdate();
             var keys = stmt.getGeneratedKeys();
             if (keys.next()) return new UserProfile(keys.getInt(1), username, "", "", "", "", false);
