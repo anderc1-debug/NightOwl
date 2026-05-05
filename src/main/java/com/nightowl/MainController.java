@@ -1,6 +1,10 @@
 package com.nightowl;
 
 import javafx.fxml.FXML;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -44,6 +48,8 @@ public class MainController implements Initializable {
     @FXML private Label  labelStress;
     @FXML private Label  labelStudy;
     @FXML private Label  labelWellnessSaved;
+    @FXML private VBox   wellnessChartContainer;
+    @FXML private VBox   wellnessSummaryContainer;
 
     // ── State ─────────────────────────────────────────────────────────────────
 
@@ -585,4 +591,100 @@ public class MainController implements Initializable {
     @FXML private void openCounseling()        { openURL(campus().counseling()); }
     @FXML private void openHealthAndWellness() { openURL(campus().healthAndWellness()); }
     @FXML private void openTimelyCare()        { openURL(campus().timelyCare()); }
+
+    // ── Wellness Chart ────────────────────────────────────────────────────────
+
+    @FXML
+    private void refreshWellnessChart() {
+        buildWellnessChart();
+    }
+
+    private void buildWellnessChart() {
+        wellnessChartContainer.getChildren().clear();
+        wellnessSummaryContainer.getChildren().clear();
+
+        var entries = DatabaseManager.getInstance().getRecentEntries(14);
+
+        if (entries.isEmpty()) {
+            var empty = new Label("No wellness data yet. Start logging entries to see your report.");
+            empty.setStyle("-fx-text-fill: #5B3A8A; -fx-font-size: 13px; -fx-font-style: italic;");
+            wellnessChartContainer.getChildren().add(empty);
+            return;
+        }
+
+        var sorted = new java.util.ArrayList<>(entries);
+        java.util.Collections.reverse(sorted);
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Date");
+        xAxis.setStyle("-fx-tick-label-fill: #A78BCA;");
+
+        NumberAxis yAxis = new NumberAxis(0, 12, 1);
+        yAxis.setLabel("Value");
+        yAxis.setStyle("-fx-tick-label-fill: #A78BCA;");
+
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.setTitle("Wellness Trends — Last " + sorted.size() + " Entries");
+        chart.setLegendVisible(true);
+        chart.setAnimated(false);
+        chart.setPrefHeight(320);
+
+        XYChart.Series<String, Number> moodSeries   = new XYChart.Series<>(); moodSeries.setName("Mood");
+        XYChart.Series<String, Number> sleepSeries  = new XYChart.Series<>(); sleepSeries.setName("Sleep (hrs)");
+        XYChart.Series<String, Number> stressSeries = new XYChart.Series<>(); stressSeries.setName("Stress");
+        XYChart.Series<String, Number> studySeries  = new XYChart.Series<>(); studySeries.setName("Study (hrs)");
+
+        double totalMood = 0, totalSleep = 0, totalStress = 0, totalStudy = 0;
+
+        for (var entry : sorted) {
+            String date = entry.date().getMonthValue() + "/" + entry.date().getDayOfMonth();
+            moodSeries.getData().add(new XYChart.Data<>(date, entry.mood()));
+            sleepSeries.getData().add(new XYChart.Data<>(date, entry.sleep()));
+            stressSeries.getData().add(new XYChart.Data<>(date, entry.stress()));
+            studySeries.getData().add(new XYChart.Data<>(date, entry.study()));
+            totalMood   += entry.mood();
+            totalSleep  += entry.sleep();
+            totalStress += entry.stress();
+            totalStudy  += entry.study();
+        }
+
+        chart.getData().addAll(moodSeries, sleepSeries, stressSeries, studySeries);
+
+        String[] colors = {"#C084FC", "#60A5FA", "#F87171", "#34D399"};
+        chart.applyCss();
+        for (int i = 0; i < chart.getData().size(); i++) {
+            var series = chart.getData().get(i);
+            String color = colors[i];
+            if (series.getNode() != null)
+                series.getNode().setStyle("-fx-stroke: " + color + "; -fx-stroke-width: 2px;");
+            for (var d : series.getData()) {
+                if (d.getNode() != null)
+                    d.getNode().setStyle("-fx-background-color: " + color + ", white; -fx-background-radius: 4px;");
+            }
+        }
+
+        wellnessChartContainer.getChildren().add(chart);
+
+        int n = sorted.size();
+        Label summaryTitle = makeCardTitle("Averages (" + n + " entries)");
+        HBox summaryRow = new HBox(12);
+        summaryRow.getChildren().addAll(
+            makeStat("Mood",   String.format("%.1f / 10", totalMood   / n)),
+            makeStat("Sleep",  String.format("%.1f hrs",  totalSleep  / n)),
+            makeStat("Stress", String.format("%.1f / 10", totalStress / n)),
+            makeStat("Study",  String.format("%.1f hrs",  totalStudy  / n))
+        );
+        wellnessSummaryContainer.getChildren().addAll(summaryTitle, summaryRow);
+    }
+
+    private VBox makeStat(String label, String value) {
+        var lbl = new Label(label);
+        lbl.setStyle("-fx-text-fill: #A78BCA; -fx-font-size: 11px;");
+        var val = new Label(value);
+        val.setStyle("-fx-text-fill: #C084FC; -fx-font-size: 16px; -fx-font-weight: bold;");
+        var box = new VBox(4, lbl, val);
+        box.setStyle("-fx-background-color: #1A0A2E; -fx-border-color: #3D1F6B; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12 16 12 16;");
+        return box;
+    }
+
 }
