@@ -2,15 +2,16 @@ package com.nightowl;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 
 import java.awt.Desktop;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -33,10 +34,6 @@ public class MainController implements Initializable {
     @FXML private VBox      panelStudyRooms;
     @FXML private VBox      panelWellness;
     @FXML private Label     headerLabel;
-    @FXML private VBox      dscDetails;
-    @FXML private Button    dscToggleBtn;
-
-    // ── Wellness Bindings ─────────────────────────────────────────────────────
 
     @FXML private Slider sliderMood;
     @FXML private Slider sliderSleep;
@@ -51,15 +48,37 @@ public class MainController implements Initializable {
     // ── State ─────────────────────────────────────────────────────────────────
 
     private boolean sidebarExpanded = true;
-    private boolean dscExpanded     = false;
+    private UserProfile currentUser;
+    private CampusResources.Campus campus;
 
-    // ── Sealed type: each nav section defined in one place ───────────────────
+    // ── Resource entry model ──────────────────────────────────────────────────
+
+    record ResourceEntry(String title, String category, String location,
+                         String phone, String hours, String description,
+                         String url, String email) {
+        boolean matches(String query, String activeCategory) {
+            boolean categoryMatch = activeCategory.equals("All") || category.equals(activeCategory);
+            if (!categoryMatch) return false;
+            if (query.isEmpty()) return true;
+            String q = query.toLowerCase();
+            return title.toLowerCase().contains(q)
+                || category.toLowerCase().contains(q)
+                || description.toLowerCase().contains(q)
+                || location.toLowerCase().contains(q);
+        }
+    }
+
+    private List<ResourceEntry> allResources = new ArrayList<>();
+    private String activeCategory = "All";
+    private String searchQuery = "";
+    private VBox resourceCardsContainer;
+
+    // ── Nav ───────────────────────────────────────────────────────────────────
 
     sealed interface NavSection
             permits NavSection.Resources, NavSection.Map,
                     NavSection.Emergency, NavSection.StudyRooms,
                     NavSection.Wellness {
-
         record Resources  () implements NavSection {}
         record Map        () implements NavSection {}
         record Emergency  () implements NavSection {}
@@ -67,27 +86,124 @@ public class MainController implements Initializable {
         record Wellness   () implements NavSection {}
     }
 
-    // ── Icon maps for collapsed / expanded sidebar ────────────────────────────
-
     private static final Map<String, String> LABELS_EXPANDED = Map.of(
-            "toggle",     "Menu",
-            "resources",  "Resources",
-            "map",        "Campus Map",
-            "emergency",  "Emergency",
-            "studyrooms", "Study Rooms",
-            "wellness",   "Wellness"
+            "toggle", "Menu", "resources", "Resources", "map", "Campus Map",
+            "emergency", "Emergency", "studyrooms", "Study Rooms", "wellness", "Wellness"
     );
-
     private static final Map<String, String> LABELS_COLLAPSED = Map.of(
-            "toggle",     "☰",
-            "resources",  "📋",
-            "map",        "🗺",
-            "emergency",  "🚨",
-            "studyrooms", "📚",
-            "wellness",   "💚"
+            "toggle", "☰", "resources", "📋", "map", "🗺",
+            "emergency", "🚨", "studyrooms", "📚", "wellness", "💚"
     );
 
-    // ── Initialisation ────────────────────────────────────────────────────────
+    // ── User setup ────────────────────────────────────────────────────────────
+
+    public void setCurrentUser(UserProfile user) {
+        this.currentUser = user;
+        if (user != null) {
+            campus = CampusResources.get(user.getSchool());
+            headerLabel.setText("Welcome, " + user.getUsername());
+            buildAllResources();
+            buildResourcesPanel();
+            buildMapPanel();
+            buildEmergencyPanel();
+            buildStudyRoomsPanel();
+        }
+    }
+
+    private CampusResources.Campus campus() {
+        return campus != null ? campus : CampusResources.get("Farmingdale State College");
+    }
+
+    // ── Build resource list from campus data ──────────────────────────────────
+
+    private void buildAllResources() {
+        var c = campus();
+        allResources.clear();
+        allResources.addAll(List.of(
+            new ResourceEntry(
+                c.disabilityServicesName(), "Accessibility",
+                c.disabilityServicesLocation(),
+                c.disabilityServicesPhone(),
+                c.disabilityServicesHours(),
+                "Academic accommodations for students with documented disabilities.",
+                c.disabilityServices(), c.disabilityEmail()
+            ),
+            new ResourceEntry(
+                c.counselingName(), "Mental Health",
+                "See website for location",
+                c.counselingPhone(),
+                "Monday – Friday, business hours",
+                "Free confidential counseling and psychological services for enrolled students.",
+                c.counseling(), ""
+            ),
+            new ResourceEntry(
+                c.healthName(), "Health",
+                "See website for location",
+                c.healthPhone(),
+                "Monday – Friday, business hours",
+                "On-campus health services including medical care, referrals, and wellness programs.",
+                c.healthAndWellness(), ""
+            ),
+            new ResourceEntry(
+                "TimelyCare", "Mental Health",
+                "Virtual (24/7)",
+                "",
+                "24/7 virtual care",
+                "Free telehealth and mental health support available anytime, anywhere.",
+                c.timelyCare(), ""
+            ),
+            new ResourceEntry(
+                c.libraryName(), "Academic",
+                "See campus map",
+                c.libraryPhone(),
+                "Varies by semester",
+                "Library resources, study spaces, research support, and room bookings.",
+                c.libraryHours(), ""
+            ),
+            new ResourceEntry(
+                "Campus Map & Directions", "Campus",
+                c.name(),
+                "",
+                "Available online",
+                "Interactive campus map and directions to buildings and departments.",
+                c.campusMap(), ""
+            ),
+            new ResourceEntry(
+                "Shuttle & Transportation", "Campus",
+                "See campus map for stops",
+                "",
+                "Varies by semester",
+                "Campus shuttle routes, schedules, and transportation services.",
+                c.shuttleTracker(), ""
+            ),
+            new ResourceEntry(
+                "Emergency Alerts", "Safety",
+                "Online signup",
+                "",
+                "24/7",
+                "Sign up for emergency notifications and campus safety alerts.",
+                c.emergencyAlerts(), ""
+            ),
+            new ResourceEntry(
+                "University / Campus Police", "Safety",
+                "See campus map",
+                c.policePhone(),
+                "24/7",
+                "Campus law enforcement and emergency response. Call 911 for emergencies.",
+                c.activeShooter(), ""
+            ),
+            new ResourceEntry(
+                "Study Room Booking", "Academic",
+                c.libraryName(),
+                c.libraryPhone(),
+                "During library hours",
+                "Reserve group or individual study spaces on campus.",
+                c.studyRoomBooking(), ""
+            )
+        ));
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -98,31 +214,298 @@ public class MainController implements Initializable {
         bindSliderLabel(sliderStudy,  labelStudy);
     }
 
-    // ── Slider helper ─────────────────────────────────────────────────────────
+    // ── Resources panel ───────────────────────────────────────────────────────
 
-    private void bindSliderLabel(Slider slider, Label label) {
-        label.setText(String.format("%.0f", slider.getValue()));
-        slider.valueProperty().addListener((obs, oldVal, newVal) ->
-                label.setText(String.format("%.0f", newVal.doubleValue()))
+    private void buildResourcesPanel() {
+        panelResources.getChildren().clear();
+        panelResources.setPadding(new Insets(30));
+        panelResources.setSpacing(16);
+
+        // Title
+        panelResources.getChildren().addAll(
+            makeTitle("Resource Directory"),
+            makeSubtitle("Campus services available to you at " + campus().name() + ".")
+        );
+
+        // Search bar
+        TextField searchField = new TextField();
+        searchField.setPromptText("🔍  Search resources...");
+        searchField.setStyle("""
+            -fx-background-color: #120720;
+            -fx-text-fill: #E0C3FC;
+            -fx-prompt-text-fill: #5B3A8A;
+            -fx-border-color: #3D1F6B;
+            -fx-border-width: 1;
+            -fx-border-radius: 8;
+            -fx-background-radius: 8;
+            -fx-padding: 10 14 10 14;
+            -fx-font-size: 13px;
+            """);
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            searchQuery = newVal.trim();
+            refreshResourceCards();
+        });
+        panelResources.getChildren().add(searchField);
+
+        // Filter chips
+        String[] categories = {"All", "Accessibility", "Mental Health", "Health", "Academic", "Campus", "Safety"};
+        HBox chips = new HBox(8);
+        chips.setAlignment(Pos.CENTER_LEFT);
+        List<Button> chipBtns = new ArrayList<>();
+
+        for (String cat : categories) {
+            Button chip = new Button(cat);
+            chip.setStyle(chipStyle(cat.equals("All")));
+            chip.setOnAction(e -> {
+                activeCategory = cat;
+                chipBtns.forEach(b -> b.setStyle(chipStyle(b.getText().equals(cat))));
+                refreshResourceCards();
+            });
+            chipBtns.add(chip);
+            chips.getChildren().add(chip);
+        }
+        panelResources.getChildren().add(chips);
+
+        // Cards container
+        resourceCardsContainer = new VBox(14);
+        panelResources.getChildren().add(resourceCardsContainer);
+
+        refreshResourceCards();
+    }
+
+    private void refreshResourceCards() {
+        resourceCardsContainer.getChildren().clear();
+        List<ResourceEntry> filtered = allResources.stream()
+            .filter(r -> r.matches(searchQuery, activeCategory))
+            .toList();
+
+        if (filtered.isEmpty()) {
+            Label none = new Label("No resources found for \"" + searchQuery + "\"");
+            none.setStyle("-fx-text-fill: #5B3A8A; -fx-font-size: 13px; -fx-font-style: italic; -fx-padding: 20 0 0 0;");
+            resourceCardsContainer.getChildren().add(none);
+            return;
+        }
+
+        for (ResourceEntry r : filtered) {
+            resourceCardsContainer.getChildren().add(buildResourceCard(r));
+        }
+    }
+
+    private VBox buildResourceCard(ResourceEntry r) {
+        return makeCard(card -> {
+            boolean[] expanded = {false};
+
+            // Category badge
+            Label badge = new Label(r.category());
+            badge.setStyle("""
+                -fx-background-color: #2D1050;
+                -fx-text-fill: #C084FC;
+                -fx-font-size: 11px;
+                -fx-font-weight: bold;
+                -fx-background-radius: 4;
+                -fx-padding: 2 8 2 8;
+                """);
+
+            var titleLabel = makeCardTitle(r.title());
+            Button toggleBtn = makeScheduleBtn("▼  Details");
+            toggleBtn.setStyle(toggleBtn.getStyle() + "-fx-font-size: 12px; -fx-padding: 6 12 6 12;");
+
+            VBox leftCol = new VBox(4, badge, titleLabel);
+            if (!r.location().isEmpty()) leftCol.getChildren().add(makeCardValue(r.location()));
+            if (!r.phone().isEmpty())    leftCol.getChildren().add(makeCardValueHighlight(r.phone()));
+            HBox.setHgrow(leftCol, Priority.ALWAYS);
+
+            HBox headerRow = new HBox(10, leftCol, toggleBtn);
+            headerRow.setAlignment(Pos.CENTER_LEFT);
+
+            // Expandable details
+            VBox details = new VBox(10);
+            details.setVisible(false);
+            details.setManaged(false);
+
+            if (!r.hours().isEmpty())
+                details.getChildren().add(makeHBoxRow("Hours:", makeCardValue(r.hours())));
+            if (!r.description().isEmpty())
+                details.getChildren().add(makeCardNote(r.description()));
+            if (!r.email().isEmpty())
+                details.getChildren().add(makeHBoxRow("Email:", makeLink(r.email(), () -> openMailTo(r.email()))));
+
+            HBox btnRow = new HBox(10);
+            if (!r.url().isEmpty())
+                btnRow.getChildren().add(makeLinkBtn("Visit Website", () -> openURL(r.url())));
+            if (!r.email().isEmpty())
+                btnRow.getChildren().add(makeLinkBtn("Send Email", () -> openMailTo(r.email())));
+            if (!btnRow.getChildren().isEmpty())
+                details.getChildren().add(btnRow);
+
+            toggleBtn.setOnAction(e -> {
+                expanded[0] = !expanded[0];
+                details.setVisible(expanded[0]);
+                details.setManaged(expanded[0]);
+                toggleBtn.setText(expanded[0] ? "▲  Close" : "▼  Details");
+            });
+
+            card.getChildren().addAll(headerRow, details);
+        });
+    }
+
+    private String chipStyle(boolean active) {
+        if (active) return """
+            -fx-background-color: #7C3AED;
+            -fx-text-fill: white;
+            -fx-font-size: 12px;
+            -fx-font-weight: bold;
+            -fx-background-radius: 20;
+            -fx-padding: 5 14 5 14;
+            -fx-cursor: hand;
+            """;
+        return """
+            -fx-background-color: #120720;
+            -fx-text-fill: #A78BCA;
+            -fx-font-size: 12px;
+            -fx-border-color: #3D1F6B;
+            -fx-border-width: 1;
+            -fx-border-radius: 20;
+            -fx-background-radius: 20;
+            -fx-padding: 5 14 5 14;
+            -fx-cursor: hand;
+            """;
+    }
+
+    // ── Map panel ─────────────────────────────────────────────────────────────
+
+    private void buildMapPanel() {
+        var c = campus();
+        panelMap.getChildren().clear();
+        panelMap.setPadding(new Insets(30));
+        panelMap.setSpacing(20);
+
+        HBox mapBtns = new HBox(12,
+            makeScheduleBtn("Open Shuttle Tracker", () -> openURL(c.shuttleTracker())),
+            makeScheduleBtn("Open Campus Map", () -> openURL(c.campusMap()))
+        );
+
+        panelMap.getChildren().addAll(
+            makeTitle("Campus Map & Shuttle"),
+            makeSubtitle("Transportation and navigation resources for " + c.name() + "."),
+            mapBtns
         );
     }
 
-    // ── Sidebar toggle ────────────────────────────────────────────────────────
+    // ── Emergency panel ───────────────────────────────────────────────────────
+
+    private void buildEmergencyPanel() {
+        var c = campus();
+        panelEmergency.getChildren().clear();
+        panelEmergency.setPadding(new Insets(30));
+        panelEmergency.setSpacing(20);
+
+        HBox emergencyBtns = new HBox(12,
+            makeScheduleBtn("🚨  Call 911", () -> openURL("tel:911")),
+            makeScheduleBtn("📞  Call Campus Police", () ->
+                openURL("tel:" + c.policePhone().replaceAll("[^0-9]", "")))
+        );
+
+        panelEmergency.getChildren().addAll(
+            makeTitle("Emergency Response"),
+            makeSubtitle("Campus emergency contacts, safety procedures, and crisis resources."),
+            emergencyBtns,
+            makeCard(card -> card.getChildren().addAll(
+                makeCardTitle("University / Campus Police"),
+                makeHBoxRow("Emergency:", makeCardValueHighlight("911")),
+                makeHBoxRow("Non-Emergency:", makeCardValueHighlight(c.policePhone())),
+                makeHBoxRow("Hours:", makeCardValue("24 hours a day, 7 days a week")),
+                new HBox(10,
+                    makeLinkBtn("Emergency Alerts", () -> openURL(c.emergencyAlerts())),
+                    makeLinkBtn("Active Shooter Guide", () -> openURL(c.activeShooter())),
+                    makeLinkBtn("Evacuation Procedures", () -> openURL(c.evacuation()))
+                )
+            )),
+            makeCard(card -> card.getChildren().addAll(
+                makeCardTitle("Crisis and Mental Health Support"),
+                makeHBoxRow("988 Lifeline:", makeCardValueHighlight("Call or text 988")),
+                makeHBoxRow("Crisis Text:", makeCardValueHighlight("Text HOME to 741741")),
+                makeHBoxRow(c.counselingName() + ":", makeCardValueHighlight(c.counselingPhone())),
+                makeCardNote(c.counselingName() + " is available Monday–Friday during business hours. "
+                        + "For after-hours emergencies, call 988 or go to your nearest emergency room."),
+                makeLinkBtn("Visit Counseling Services", () -> openURL(c.mentalHealth()))
+            ))
+        );
+    }
+
+    // ── Study Rooms panel ─────────────────────────────────────────────────────
+
+    private void buildStudyRoomsPanel() {
+        var c = campus();
+        panelStudyRooms.getChildren().clear();
+        panelStudyRooms.setPadding(new Insets(30));
+        panelStudyRooms.setSpacing(20);
+
+        panelStudyRooms.getChildren().addAll(
+            makeTitle("Study Room Booking"),
+            makeSubtitle("Reserve a study space at " + c.libraryName() + "."),
+            makeScheduleBtn("📚  Book a Study Room", () -> openURL(c.studyRoomBooking())),
+            makeCard(card -> card.getChildren().addAll(
+                makeCardTitle(c.libraryName()),
+                makeHBoxRow("Phone:", makeCardValueHighlight(c.libraryPhone())),
+                makeCardNote("Hours may vary during finals, holidays, and intersession."),
+                makeLinkBtn("Current Library Hours", () -> openURL(c.libraryHours()))
+            ))
+        );
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────────────────
+
+    private Label makeTitle(String text) {
+        var l = new Label(text); l.getStyleClass().add("panel-title"); return l;
+    }
+    private Label makeSubtitle(String text) {
+        var l = new Label(text); l.getStyleClass().add("panel-subtitle"); l.setWrapText(true); return l;
+    }
+    private Label makeCardTitle(String text) {
+        var l = new Label(text); l.getStyleClass().add("card-title"); return l;
+    }
+    private Label makeCardValue(String text) {
+        var l = new Label(text); l.getStyleClass().add("card-value"); l.setWrapText(true); return l;
+    }
+    private Label makeCardValueHighlight(String text) {
+        var l = new Label(text); l.getStyleClass().add("card-value-highlight"); return l;
+    }
+    private Label makeCardNote(String text) {
+        var l = new Label(text); l.getStyleClass().add("card-note");
+        l.setWrapText(true); l.setMaxWidth(500); return l;
+    }
+    private Button makeLink(String text, Runnable action) {
+        var b = new Button(text); b.getStyleClass().add("card-link-btn");
+        b.setOnAction(e -> action.run()); return b;
+    }
+    private Button makeLinkBtn(String text, Runnable action) { return makeLink(text, action); }
+    private Button makeScheduleBtn(String text) {
+        var b = new Button(text); b.getStyleClass().add("schedule-btn"); return b;
+    }
+    private Button makeScheduleBtn(String text, Runnable action) {
+        var b = makeScheduleBtn(text); b.setOnAction(e -> action.run()); return b;
+    }
+    private HBox makeHBoxRow(String labelText, javafx.scene.Node value) {
+        var lbl = new Label(labelText); lbl.getStyleClass().add("card-label"); lbl.setMinWidth(110);
+        var row = new HBox(10, lbl, value); row.setAlignment(Pos.CENTER_LEFT); return row;
+    }
+
+    @FunctionalInterface interface CardBuilder { void build(VBox card); }
+    private VBox makeCard(CardBuilder builder) {
+        var card = new VBox(12); card.getStyleClass().add("resource-card");
+        card.setPadding(new Insets(20)); builder.build(card); return card;
+    }
+
+    // ── Sidebar ───────────────────────────────────────────────────────────────
 
     @FXML
     private void toggleSidebar() {
         sidebarExpanded = !sidebarExpanded;
-
         var labels = sidebarExpanded ? LABELS_EXPANDED : LABELS_COLLAPSED;
-
         sidebar.setPrefWidth(sidebarExpanded ? 220 : 60);
-
-        if (sidebarExpanded) {
-            sidebar.getStyleClass().remove("sidebar-collapsed");
-        } else {
-            sidebar.getStyleClass().add("sidebar-collapsed");
-        }
-
+        if (sidebarExpanded) sidebar.getStyleClass().remove("sidebar-collapsed");
+        else sidebar.getStyleClass().add("sidebar-collapsed");
         toggleSidebarBtn.setText(labels.get("toggle"));
         btnResources .setText(labels.get("resources"));
         btnMap       .setText(labels.get("map"));
@@ -131,17 +514,7 @@ public class MainController implements Initializable {
         btnWellness  .setText(labels.get("wellness"));
     }
 
-    // ── DSC expand / collapse ─────────────────────────────────────────────────
-
-    @FXML
-    private void toggleDSC() {
-        dscExpanded = !dscExpanded;
-        dscDetails.setVisible(dscExpanded);
-        dscDetails.setManaged(dscExpanded);
-        dscToggleBtn.setText(dscExpanded ? "▲  Hide Details" : "▼  View Details");
-    }
-
-    // ── Nav button handlers ───────────────────────────────────────────────────
+    // ── Navigation ────────────────────────────────────────────────────────────
 
     @FXML private void navResources () { navigateTo(new NavSection.Resources());  }
     @FXML private void navMap       () { navigateTo(new NavSection.Map());        }
@@ -157,84 +530,42 @@ public class MainController implements Initializable {
             case NavSection.StudyRooms s -> new NavTarget(panelStudyRooms, btnStudyRooms, "Study Room Booking");
             case NavSection.Wellness   s -> new NavTarget(panelWellness,   btnWellness,   "Personal Wellness Log");
         };
-
         allPanels().forEach(p -> { p.setVisible(false); p.setManaged(false); });
         target.panel().setVisible(true);
         target.panel().setManaged(true);
-
         headerLabel.setText(target.title());
-
         allNavButtons().forEach(b -> b.getStyleClass().remove("nav-btn-active"));
         target.button().getStyleClass().add("nav-btn-active");
     }
 
     private record NavTarget(VBox panel, Button button, String title) {}
-
-    // ── Helper lists ──────────────────────────────────────────────────────────
-
     private List<VBox> allPanels() {
         return List.of(panelResources, panelMap, panelEmergency, panelStudyRooms, panelWellness);
     }
-
     private List<Button> allNavButtons() {
         return List.of(btnResources, btnMap, btnEmergency, btnStudyRooms, btnWellness);
     }
 
-    // ── URL / Mail helpers ────────────────────────────────────────────────────
+    // ── URL helpers ───────────────────────────────────────────────────────────
 
     private void openURL(String url) {
-        try {
-            Desktop.getDesktop().browse(new URI(url));
-        } catch (Exception e) {
-            System.err.printf("[NightOwl] Failed to open URL: %s%n  Cause: %s%n", url, e.getMessage());
-        }
+        if (url == null || url.isEmpty()) return;
+        try { Desktop.getDesktop().browse(new URI(url)); }
+        catch (Exception e) { System.err.println("[NightOwl] Failed to open: " + url); }
     }
-
     private void openMailTo(String address) {
-        try {
-            Desktop.getDesktop().mail(new URI("mailto:" + address));
-        } catch (Exception e) {
-            System.err.printf("[NightOwl] Failed to open mail client for: %s%n  Cause: %s%n", address, e.getMessage());
-        }
+        if (address == null || address.isEmpty()) return;
+        try { Desktop.getDesktop().mail(new URI("mailto:" + address)); }
+        catch (Exception e) { System.err.println("[NightOwl] Failed to open mail: " + address); }
     }
 
-    // ── Resource Directory ────────────────────────────────────────────────────
+    // ── Wellness ──────────────────────────────────────────────────────────────
 
-    @FXML private void openTestingForm()         { openURL("https://farmingdale.qualtrics.com/jfe/form/SV_2ty60KESWFdm9L0"); }
-    @FXML private void openGettingToKnowYou()    { openURL("https://farmingdale-accommodate.symplicity.com/public_accommodation/"); }
-    @FXML private void openVisitingStudentForm() { openURL("https://farmingdale.qualtrics.com/jfe/form/SV_7amXZb5Z7SaAJKt"); }
-    @FXML private void openPlacementTesting()    { openURL("https://www.farmingdale.edu/placement-testing/index.shtml"); }
-    @FXML private void openAccommodationHub()    { openURL("https://farmingdale-accommodate.symplicity.com/"); }
-    @FXML private void openKurzweil()            { openURL("https://www.kurzweil3000.com"); }
-    @FXML private void openDocumentation()       { openURL("https://www.farmingdale.edu/disability-services-center/dsc_guidelines_for_documentation/index.shtml"); }
-    @FXML private void openMeetTeam()            { openURL("https://www.farmingdale.edu/disability-services-center/disability_services_center-meet_the_team.shtml"); }
-    @FXML private void openReportIssue()         { openURL("https://cm.maxient.com/reporting.php?SUNYFarmingdale"); }
-    @FXML private void openAttendancePolicy()    { openURL("https://www.farmingdale.edu/disability-services-center/pdf/farmingdale_state_college_student_attendance_policy.pdf"); }
-    @FXML private void openWebAccessibility()    { openURL("https://www.farmingdale.edu/accessibility/index.shtml"); }
-    @FXML private void openEvacuation()          { openURL("https://www.farmingdale.edu/university-police/pdf/evacuation_guidelines.pdf"); }
-    @FXML private void openDSCEmail()            { openMailTo("DSC@farmingdale.edu"); }
-    @FXML private void openTestingEmail()        { openMailTo("TESTING@farmingdale.edu"); }
-
-    // ── Campus Map & Shuttle ──────────────────────────────────────────────────
-
-    @FXML private void openShuttleTracker() { openURL("https://farmingdale.downtownerapp.com/routes/"); }
-    @FXML private void openCampusMap()      { openURL("https://map.farmingdale.edu/"); }
-    @FXML private void openShuttleEmail()   { openMailTo("cataldak@farmingdale.edu"); }
-
-    // ── Emergency Panel ───────────────────────────────────────────────────────
-
-    @FXML private void callCampusPolice()       { openURL("tel:9344205765"); }
-    @FXML private void call911()                { openURL("tel:911"); }
-    @FXML private void openActiveShooterGuide() { openURL("https://www.farmingdale.edu/university-police/pdf/active_shooter.pdf"); }
-    @FXML private void openEmergencyAlerts()    { openURL("https://www.farmingdale.edu/university-police/emergency-alerts.shtml"); }
-    @FXML private void openCrisisSupport()      { openURL("https://www.farmingdale.edu/counseling/index.shtml"); }
-
-    // ── Study Room Booking ────────────────────────────────────────────────────
-
-    @FXML private void openStudyRoomBooking() { openURL("https://farmingdale.libcal.com/spaces"); }
-    @FXML private void openLibraryHours()     { openURL("https://library.farmingdale.edu/hours"); }
-
-    // ── Wellness Panel ────────────────────────────────────────────────────────
+    private void bindSliderLabel(Slider slider, Label label) {
+        label.setText(String.format("%.0f", slider.getValue()));
+        slider.valueProperty().addListener((obs, oldVal, newVal) ->
+            label.setText(String.format("%.0f", newVal.doubleValue())));
+    }
 
     @FXML
     private void saveWellnessEntry() {
@@ -242,19 +573,16 @@ public class MainController implements Initializable {
         int sleep  = (int) sliderSleep.getValue();
         int stress = (int) sliderStress.getValue();
         int study  = (int) sliderStudy.getValue();
-
         var db = DatabaseManager.getInstance();
-
         if (db.hasEntryForToday()) {
             labelWellnessSaved.setText("⚠  You already logged an entry today.");
             return;
         }
-
         db.saveWellnessEntry(mood, sleep, stress, study);
         labelWellnessSaved.setText("✓  Entry saved for today.");
     }
 
-    @FXML private void openCounseling()        { openURL("https://www.farmingdale.edu/counseling/index.shtml"); }
-    @FXML private void openHealthAndWellness() { openURL("https://www.farmingdale.edu/health-services/index.shtml"); }
-    @FXML private void openTimelyCare()        { openURL("https://timelycare.com/farmingdale"); }
+    @FXML private void openCounseling()        { openURL(campus().counseling()); }
+    @FXML private void openHealthAndWellness() { openURL(campus().healthAndWellness()); }
+    @FXML private void openTimelyCare()        { openURL(campus().timelyCare()); }
 }
