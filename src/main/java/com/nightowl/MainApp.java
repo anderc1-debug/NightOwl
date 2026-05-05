@@ -343,7 +343,7 @@ public class MainApp extends Application {
                     currentUser.getId(), school[0], major[0], classYear[0], prefs[0]
                 );
                 currentUser = new UserProfile(currentUser.getId(), currentUser.getUsername(),
-                    school[0], major[0], classYear[0], prefs[0]);
+                    school[0], major[0], classYear[0], prefs[0], currentUser.isAdmin());
                 loadMainWindow();
             });
 
