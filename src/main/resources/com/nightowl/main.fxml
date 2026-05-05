@@ -58,25 +58,25 @@
                     <VBox fx:id="panelResources" styleClass="panel" spacing="20" visible="true"/>
 
                     <!-- MAP PANEL - built dynamically in MainController -->
-                    <VBox fx:id="panelMap" styleClass="panel" spacing="20" visible="false"/>
+                    <VBox fx:id="panelMap" styleClass="panel" spacing="20" visible="false" managed="false"/>
 
                     <!-- EMERGENCY PANEL - built dynamically in MainController -->
-                    <VBox fx:id="panelEmergency" styleClass="panel" spacing="20" visible="false"/>
+                    <VBox fx:id="panelEmergency" styleClass="panel" spacing="20" visible="false" managed="false"/>
 
                     <!-- STUDY ROOMS PANEL - built dynamically in MainController -->
-                    <VBox fx:id="panelStudyRooms" styleClass="panel" spacing="20" visible="false"/>
+                    <VBox fx:id="panelStudyRooms" styleClass="panel" spacing="20" visible="false" managed="false"/>
 
                     <!-- ADMIN PANEL - built dynamically in MainController -->
-                    <VBox fx:id="panelAdmin" styleClass="panel" spacing="20" visible="false"/>
+                    <VBox fx:id="panelAdmin" styleClass="panel" spacing="20" visible="false" managed="false"/>
 
                     <!-- MY RESOURCES PANEL - built dynamically in MainController -->
-                    <VBox fx:id="panelMyResources" styleClass="panel" spacing="20" visible="false"/>
+                    <VBox fx:id="panelMyResources" styleClass="panel" spacing="20" visible="false" managed="false"/>
 
                     <!-- TIPS PANEL - built dynamically in MainController -->
-                    <VBox fx:id="panelTips" styleClass="panel" spacing="20" visible="false"/>
+                    <VBox fx:id="panelTips" styleClass="panel" spacing="20" visible="false" managed="false"/>
 
                     <!-- WELLNESS PANEL -->
-                    <VBox fx:id="panelWellness" styleClass="panel" spacing="20" visible="false">
+                    <VBox fx:id="panelWellness" styleClass="panel" spacing="20" visible="false" managed="false">
                         <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
                         <Label text="Personal Wellness Log" styleClass="panel-title"/>
                         <Label text="Track your mood, sleep, stress, and study sessions." styleClass="panel-subtitle" wrapText="true"/>
