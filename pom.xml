@@ -25,19 +25,9 @@
       <version>${javafx.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-charts</artifactId>
-      <version>${javafx.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
-      <version>10.17.1.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derbytools</artifactId>
-      <version>10.17.1.0</version>
+      <version>10.14.2.0</version>
     </dependency>
   </dependencies>
 
@@ -60,7 +50,8 @@
           <execution>
             <id>default-cli</id>
             <configuration>
-              <mainClass>com.nightowl.Main</mainClass>
+              <mainClass>com.nightowl/com.nightowl.Main</mainClass>
+              <includePathExceptionsInClasspath>true</includePathExceptionsInClasspath>
             </configuration>
           </execution>
         </executions>
