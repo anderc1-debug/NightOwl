@@ -83,9 +83,11 @@ The Derby database creates itself automatically on first run. No setup or config
 
 On first launch you will be prompted to create an account. To grant admin access, you will need to update the IS_ADMIN column directly in the Derby database for that user, or use the default admin credentials if you set them up beforehand.
 
-### Derby Module Issue (Fresh Clone Fix)
+### Derby Version Note
 
-If the app crashes on launch with a module not found error related to Derby, the fix is to delete the IntelliJ run configuration entirely and let Maven regenerate it from scratch. This happens because Derby 10.17 splits across three JARs and IntelliJ sometimes caches a broken module path from a previous run.
+This project uses Derby 10.14.2.0 intentionally. Derby 10.15 and above introduced JPMS module declarations, which causes the engine module to hard-require commons internally regardless of plugin configuration. Once those jars hit the module path the app fails to launch with no clean workaround.
+
+Derby 10.14 is pre-JPMS, ships as a single plain jar, gets placed on the classpath automatically, and works fine with JDK 21. Do not upgrade Derby without testing the full module path behavior first.
 
 ---
 
