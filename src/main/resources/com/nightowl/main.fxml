@@ -26,6 +26,7 @@
             <Label fx:id="headerLabel" text="Resource Directory" styleClass="header-section-label"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="headerUserLabel" text="Student" styleClass="header-user"/>
+            <Button fx:id="themeToggleBtn" text="LIGHT MODE" styleClass="toggle-btn" onAction="#toggleTheme" style="-fx-font-size: 16px;"/>
             <Button text="Log Out" styleClass="toggle-btn" onAction="#logout" style="-fx-text-fill: #E05555;"/>
         </HBox>
     </top>

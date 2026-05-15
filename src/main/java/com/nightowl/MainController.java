@@ -45,6 +45,7 @@ public class MainController implements Initializable {
     @FXML private Button    btnAdmin;
     @FXML private Label     headerLabel;
     @FXML private Label     headerUserLabel;
+    @FXML private Button themeToggleBtn;
 
     @FXML private Slider sliderMood;
     @FXML private Slider sliderSleep;
@@ -63,6 +64,7 @@ public class MainController implements Initializable {
     private boolean sidebarExpanded = true;
     private UserProfile currentUser;
     private CampusResources.Campus campus;
+    private boolean lightMode = false;
 
     // ── Resource entry model ──────────────────────────────────────────────────
 
@@ -1067,6 +1069,23 @@ public class MainController implements Initializable {
         var box = new VBox(4, lbl, val);
         box.setStyle("-fx-background-color: #1A0A2E; -fx-border-color: #3D1F6B; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12 16 12 16;");
         return box;
+    }
+
+    @FXML
+    private void toggleTheme() {
+        lightMode =!lightMode;
+        var scene = themeToggleBtn.getScene();
+        var stylesheets = scene.getStylesheets();
+        if (lightMode){
+            String css = getClass().getResource("/css/light-mode.css").toExternalForm();
+            if (!stylesheets.contains(css)) {
+                stylesheets.add(css);
+            }
+            themeToggleBtn.setText("DARK MODE");
+        } else {
+            stylesheets.removeIf(s -> s.contains("light-mode.css"));
+            themeToggleBtn.setText("LIGHT MODE");
+        }
     }
 
 }
